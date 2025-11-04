@@ -82,6 +82,10 @@ class Room
     #[Groups(['capture:room', 'room:read'])]
     private Collection $equipment;
 
+    #[ORM\ManyToOne(inversedBy: 'rooms')]
+    #[ORM\JoinColumn(nullable: false)]
+    private ?Building $Building = null;
+
     public function __construct()
     {
         $this->captures = new ArrayCollection();
@@ -229,6 +233,18 @@ class Room
     public function removeEquipment(Equipment $equipment): static
     {
         $this->equipment->removeElement($equipment);
+
+        return $this;
+    }
+
+    public function getBuilding(): ?Building
+    {
+        return $this->Building;
+    }
+
+    public function setBuilding(?Building $Building): static
+    {
+        $this->Building = $Building;
 
         return $this;
     }
