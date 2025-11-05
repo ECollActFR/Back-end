@@ -2,6 +2,12 @@
 
 namespace App\Entity;
 
+use ApiPlatform\Metadata\ApiResource;
+use ApiPlatform\Metadata\Delete;
+use ApiPlatform\Metadata\Get;
+use ApiPlatform\Metadata\Patch;
+use ApiPlatform\Metadata\Post;
+use App\Controller\UsersController;
 use App\Repository\UserRepository;
 use Carbon\Carbon;
 use Doctrine\Common\Collections\ArrayCollection;
@@ -12,6 +18,20 @@ use Symfony\Component\Security\Core\User\UserInterface;
 
 #[ORM\Entity(repositoryClass: UserRepository::class)]
 #[ORM\UniqueConstraint(name: 'UNIQ_IDENTIFIER_EMAIL', fields: ['email'])]
+#[ApiResource(
+    normalizationContext: ['groups' => ['user:read']],
+    denormalizationContext: ['groups' => ['user:write']],
+    operations: [
+        new Get(),
+        new Patch(),
+        new Post(),
+        new Delete(),
+        new Post(
+            uriTemplate: '/users/{id}/desactive',
+            controller: UsersController::class . '::desactivateUser'
+        )
+    ]
+)]
 class User implements UserInterface, PasswordAuthenticatedUserInterface
 {
     #[ORM\Id]
@@ -67,14 +87,15 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     #[ORM\OneToMany(targetEntity: Building::class, mappedBy: 'owner', orphanRemoval: true)]
     private Collection $buildings;
 
-    public function __construct(?string $firstname = null, ?string $lastname = null, ?string $email = null, ?string $phone = null, string $hashedPassword) {
+    public function __construct(?string $firstname = null, ?string $lastname = null, ?string $email = null, ?string $phone = null) {
         $this->createdAt = Carbon::now();
         $this->firstname = $firstname;
         $this->lastname = $lastname;
         $this->email = $email;
         $this->phone = $phone;
-        $this->password($hashedPassword);
         $this->buildings = new ArrayCollection();
+        $this->isActive = true;
+        $this->emailVerified = false;
     }
 
     public function getId(): ?int

@@ -25,7 +25,7 @@ use Symfony\Component\Serializer\Annotation\Groups;
         new GetCollection(),
         new Get(),
         new Get(
-            uriTemplate: '/rooms/{id}/last',
+            uriTemplate: '/rooms/{id}/lastCaptures',
             controller: RoomController::class . '::getRoomWithLastCapture'
         ),
         new Post(),

@@ -3,18 +3,39 @@
 namespace App\DataFixtures;
 
 use App\Entity\AcquisitionSystem;
+use App\Entity\Building;
 use App\Entity\CaptureType;
 use App\Entity\Equipment;
 use App\Entity\Room;
 use App\Entity\Capture;
+use App\Entity\User;
 use Carbon\Carbon;
 use Doctrine\Bundle\FixturesBundle\Fixture;
 use Doctrine\Persistence\ObjectManager;
+use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
 
 class AppFixtures extends Fixture
 {
+    private UserPasswordHasherInterface $userPasswordHasher;
+
+    public function __construct(UserPasswordHasherInterface $userPasswordHasher) {
+        $this->userPasswordHasher = $userPasswordHasher;
+    }
+
     public function load(ObjectManager $manager): void
     {
+
+        $user = new User("Alexis", "Baron", "alexis.baron.nsd@gmail.com", "+33782058609");
+        $user->setRoles(["ROLE_USER"]);
+        $user->setPassword($this->userPasswordHasher->hashPassword($user, "password"));
+        $manager->persist($user);
+
+        // Create Building
+        $building = new Building();
+        $building->setName("Bâtiment Principal");
+        $building->setOwner($user);
+        $manager->persist($building);
+        
         // Create CaptureTypes
         $captureTypes = [
             ['Temperature', 'Mesure température en °C'],
@@ -101,6 +122,7 @@ class AppFixtures extends Fixture
             $room = new Room();
             $room->setName($roomData['name']);
             $room->setDescription($roomData['description']);
+            $room->setBuilding($building); // Associate room with building
 
             // Add capture types to room
             foreach ($roomData['captureTypes'] as $typeName) {
