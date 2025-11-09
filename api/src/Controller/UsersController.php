@@ -51,6 +51,7 @@ final class UsersController extends AbstractController
         $userAuthenticated = $this->getUser();
         if (!$userAuthenticated) {
             return $this->json([
+                'user' => $this->getUser(),
                 'error' => 'Ce compte n\'existe pas.'
             ], Response::HTTP_NOT_FOUND);
         }
