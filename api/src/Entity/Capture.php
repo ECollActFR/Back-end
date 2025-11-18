@@ -4,6 +4,7 @@ namespace App\Entity;
 
 use ApiPlatform\Metadata\ApiResource;
 use ApiPlatform\Metadata\Get;
+use ApiPlatform\Metadata\Post;
 use ApiPlatform\Metadata\GetCollection;
 use App\Repository\CaptureRepository;
 use Carbon\Carbon;
@@ -16,9 +17,12 @@ use Symfony\Component\Serializer\Annotation\Groups;
     paginationClientEnabled: true,
     paginationClientItemsPerPage: true,
     paginationEnabled: true,
+    normalizationContext: ['groups' => ['capture:read']],
+    denormalizationContext: ['groups' => ['capture:write']],
     operations: [
         new Get(normalizationContext: ['groups' => ['capture:read', 'capture:room']]),
-        new GetCollection(normalizationContext: ['groups' => ['capture:read', 'capture:room']])
+        new GetCollection(normalizationContext: ['groups' => ['capture:read', 'capture:room']]),
+        new Post(normalizationContext: ['groups' => ['capture:write']])
     ]
 )]
 class Capture
@@ -30,21 +34,21 @@ class Capture
     private ?int $id = null;
 
     #[ORM\Column(type: Types::DECIMAL, precision: 6, scale: 2)]
-    #[Groups(['capture:read'])]
+    #[Groups(['capture:read', 'capture:write'])]
     private ?string $value = null;
 
     #[ORM\Column(length: 255)]
-    #[Groups(['capture:read'])]
+    #[Groups(['capture:read', 'capture:write'])]
     private ?string $description = null;
 
     #[ORM\ManyToOne(inversedBy: 'captures')]
     #[ORM\JoinColumn(nullable: true)]
-    #[Groups(['capture:room'])]
+    #[Groups(['capture:room', 'capture:write'])]
     private ?Room $room = null;
 
     #[ORM\ManyToOne]
     #[ORM\JoinColumn(nullable: false)]
-    #[Groups(['capture:read'])]
+    #[Groups(['capture:read', 'capture:write'])]
     private ?CaptureType $type = null;
 
     #[ORM\Column]
@@ -52,7 +56,7 @@ class Capture
     private ?\DateTime $createdAt = null;
 
     #[ORM\Column]
-    #[Groups(['capture:read', 'capture:room'])]
+    #[Groups(['capture:read', 'capture:room', 'capture:write'])]
     private ?\DateTime $dateCaptured = null;
 
     public function __construct()
