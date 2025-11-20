@@ -84,6 +84,7 @@ class Room
 
     #[ORM\ManyToOne(inversedBy: 'rooms')]
     #[ORM\JoinColumn(nullable: false)]
+    #[Groups(['room:read', 'room:write'])]
     private ?Building $Building = null;
 
     public function __construct()
