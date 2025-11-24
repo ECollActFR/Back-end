@@ -32,28 +32,6 @@ class DeviceNetworkConfig
     #[Assert\Length(max: 100)]
     private ?string $wifiSsid = null;
 
-    #[ORM\Column]
-    #[Groups(['deviceNetworkConfig:read', 'deviceNetworkConfig:write', 'acquisitionSystem:read'])]
-    #[Assert\Range(
-        min: -100,
-        max: 0,
-        notInRangeMessage: 'La force du signal WiFi doit être entre {{ min }} et {{ max }} dBm'
-    )]
-    private ?int $signalStrength = null;
-
-    #[ORM\Column(length: 45)]
-    #[Groups(['deviceNetworkConfig:read', 'deviceNetworkConfig:write', 'acquisitionSystem:read'])]
-    #[Assert\Ip(message: 'L\'adresse IP n\'est pas valide')]
-    private ?string $ipAddress = null;
-
-    #[ORM\Column(length: 17)]
-    #[Groups(['deviceNetworkConfig:read', 'deviceNetworkConfig:write', 'acquisitionSystem:read'])]
-    #[Assert\Regex(
-        pattern: '/^([0-9A-Fa-f]{2}[:-]){5}([0-9A-Fa-f]{2})$/',
-        message: 'L\'adresse MAC WiFi doit être au format AA:BB:CC:DD:EE:FF ou AA-BB-CC-DD-EE-FF'
-    )]
-    private ?string $wifiMacAddress = null;
-
     // NTP Configuration
     #[ORM\Column(length: 100)]
     #[Groups(['deviceNetworkConfig:read', 'deviceNetworkConfig:write', 'acquisitionSystem:read'])]
@@ -109,39 +87,6 @@ class DeviceNetworkConfig
     public function setWifiSsid(string $wifiSsid): static
     {
         $this->wifiSsid = $wifiSsid;
-        return $this;
-    }
-
-    public function getSignalStrength(): ?int
-    {
-        return $this->signalStrength;
-    }
-
-    public function setSignalStrength(int $signalStrength): static
-    {
-        $this->signalStrength = $signalStrength;
-        return $this;
-    }
-
-    public function getIpAddress(): ?string
-    {
-        return $this->ipAddress;
-    }
-
-    public function setIpAddress(string $ipAddress): static
-    {
-        $this->ipAddress = $ipAddress;
-        return $this;
-    }
-
-    public function getWifiMacAddress(): ?string
-    {
-        return $this->wifiMacAddress;
-    }
-
-    public function setWifiMacAddress(string $wifiMacAddress): static
-    {
-        $this->wifiMacAddress = $wifiMacAddress;
         return $this;
     }
 

@@ -125,7 +125,6 @@ class AcquisitionSystemConfigController extends AbstractController
                 'name' => $acquisitionSystem->getName(),
                 'type' => $acquisitionSystem->getDeviceType(),
                 'firmware_version' => $acquisitionSystem->getFirmwareVersion(),
-                'mac_address' => $acquisitionSystem->getMacAddress(),
                 'is_active' => $acquisitionSystem->isActive(),
                 'last_seen' => $acquisitionSystem->getLastSeen()?->format('c'),
                 'room_id' => $acquisitionSystem->getRoom()?->getId()
@@ -136,10 +135,7 @@ class AcquisitionSystemConfigController extends AbstractController
         if ($networkConfig = $acquisitionSystem->getNetworkConfig()) {
             $config['network'] = [
                 'wifi' => [
-                    'ssid' => $networkConfig->getWifiSsid(),
-                    'signal_strength' => $networkConfig->getSignalStrength(),
-                    'ip_address' => $networkConfig->getIpAddress(),
-                    'mac_address' => $networkConfig->getWifiMacAddress()
+                    'ssid' => $networkConfig->getWifiSsid()
                 ],
                 'ntp' => [
                     'server' => $networkConfig->getNtpServer(),
@@ -216,9 +212,6 @@ class AcquisitionSystemConfigController extends AbstractController
             if (isset($data['device']['firmware_version'])) {
                 $acquisitionSystem->setFirmwareVersion($data['device']['firmware_version']);
             }
-            if (isset($data['device']['mac_address'])) {
-                $acquisitionSystem->setMacAddress($data['device']['mac_address']);
-            }
             if (isset($data['device']['is_active'])) {
                 $acquisitionSystem->setIsActive($data['device']['is_active']);
             }
@@ -235,15 +228,6 @@ class AcquisitionSystemConfigController extends AbstractController
 
             if (isset($data['network']['wifi']['ssid'])) {
                 $networkConfig->setWifiSsid($data['network']['wifi']['ssid']);
-            }
-            if (isset($data['network']['wifi']['signal_strength'])) {
-                $networkConfig->setSignalStrength($data['network']['wifi']['signal_strength']);
-            }
-            if (isset($data['network']['wifi']['ip_address'])) {
-                $networkConfig->setIpAddress($data['network']['wifi']['ip_address']);
-            }
-            if (isset($data['network']['wifi']['mac_address'])) {
-                $networkConfig->setWifiMacAddress($data['network']['wifi']['mac_address']);
             }
             if (isset($data['network']['ntp']['server'])) {
                 $networkConfig->setNtpServer($data['network']['ntp']['server']);

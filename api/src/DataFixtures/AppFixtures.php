@@ -145,7 +145,6 @@ class AppFixtures extends Fixture
             $acquisitionSystem->setRoom($room);
             $acquisitionSystem->setDeviceType('ESP32_WROOM');
             $acquisitionSystem->setFirmwareVersion('3.0.0');
-            $acquisitionSystem->setMacAddress(sprintf('AA:BB:CC:DD:EE:%02d', $index + 1));
             $acquisitionSystem->setIsActive(true);
             $room->addAcquisitionSystem($acquisitionSystem);
 
@@ -155,120 +154,117 @@ class AppFixtures extends Fixture
             $acquisitionSystemEntities[] = $acquisitionSystem;
         }
 
-        // Configure the first acquisition system (Open Space) with full configuration
-        $esp32Config = $acquisitionSystemEntities[2]; // Open Space system
+        // Configure all acquisition systems with ESP32 configuration
+        foreach ($acquisitionSystemEntities as $systemIndex => $esp32Config) {
+            // Network Configuration (DHCP - no fixed IP)
+            $networkConfig = new DeviceNetworkConfig();
+            $networkConfig->setAcquisitionSystem($esp32Config);
+            $networkConfig->setWifiSsid('Freebox Maison');
+            $networkConfig->setNtpServer('time.google.com');
+            $networkConfig->setTimezone('Europe/Paris');
+            $networkConfig->setGmtOffsetSec(3600);
+            $networkConfig->setDaylightOffsetSec(3600);
+            $esp32Config->setNetworkConfig($networkConfig);
+            $manager->persist($networkConfig);
 
-        // Network Configuration
-        $networkConfig = new DeviceNetworkConfig();
-        $networkConfig->setAcquisitionSystem($esp32Config);
-        $networkConfig->setWifiSsid('Freebox Maison');
-        $networkConfig->setSignalStrength(-45);
-        $networkConfig->setIpAddress('192.168.1.100');
-        $networkConfig->setWifiMacAddress('AA:BB:CC:DD:EE:03');
-        $networkConfig->setNtpServer('time.google.com');
-        $networkConfig->setTimezone('Europe/Paris');
-        $networkConfig->setGmtOffsetSec(3600);
-        $networkConfig->setDaylightOffsetSec(3600);
-        $esp32Config->setNetworkConfig($networkConfig);
-        $manager->persist($networkConfig);
+            // Sensor Configuration - AHT20 for Temperature
+            $sensorAht20Temp = new DeviceSensor();
+            $sensorAht20Temp->setAcquisitionSystem($esp32Config);
+            $sensorAht20Temp->setCaptureType($captureTypeEntities['Temperature']);
+            $sensorAht20Temp->setSensorType('aht20');
+            $sensorAht20Temp->setEnabled(true);
+            $sensorAht20Temp->setReadIntervalMs(10000);
+            $sensorAht20Temp->setI2cSdaPin(26);
+            $sensorAht20Temp->setI2cSclPin(27);
+            $esp32Config->addSensor($sensorAht20Temp);
+            $manager->persist($sensorAht20Temp);
 
-        // Sensor Configuration - AHT20 for Temperature
-        $sensorAht20Temp = new DeviceSensor();
-        $sensorAht20Temp->setAcquisitionSystem($esp32Config);
-        $sensorAht20Temp->setCaptureType($captureTypeEntities['Temperature']);
-        $sensorAht20Temp->setSensorType('aht20');
-        $sensorAht20Temp->setEnabled(true);
-        $sensorAht20Temp->setReadIntervalMs(10000);
-        $sensorAht20Temp->setI2cSdaPin(26);
-        $sensorAht20Temp->setI2cSclPin(27);
-        $esp32Config->addSensor($sensorAht20Temp);
-        $manager->persist($sensorAht20Temp);
+            // Sensor Configuration - AHT20 for Humidity
+            $sensorAht20Hum = new DeviceSensor();
+            $sensorAht20Hum->setAcquisitionSystem($esp32Config);
+            $sensorAht20Hum->setCaptureType($captureTypeEntities['Humidité']);
+            $sensorAht20Hum->setSensorType('aht20');
+            $sensorAht20Hum->setEnabled(true);
+            $sensorAht20Hum->setReadIntervalMs(10000);
+            $sensorAht20Hum->setI2cSdaPin(26);
+            $sensorAht20Hum->setI2cSclPin(27);
+            $esp32Config->addSensor($sensorAht20Hum);
+            $manager->persist($sensorAht20Hum);
 
-        // Sensor Configuration - AHT20 for Humidity
-        $sensorAht20Hum = new DeviceSensor();
-        $sensorAht20Hum->setAcquisitionSystem($esp32Config);
-        $sensorAht20Hum->setCaptureType($captureTypeEntities['Humidité']);
-        $sensorAht20Hum->setSensorType('aht20');
-        $sensorAht20Hum->setEnabled(true);
-        $sensorAht20Hum->setReadIntervalMs(10000);
-        $sensorAht20Hum->setI2cSdaPin(26);
-        $sensorAht20Hum->setI2cSclPin(27);
-        $esp32Config->addSensor($sensorAht20Hum);
-        $manager->persist($sensorAht20Hum);
+            // Sensor Configuration - MQ135 for Air Quality (CO2)
+            $sensorMq135 = new DeviceSensor();
+            $sensorMq135->setAcquisitionSystem($esp32Config);
+            $sensorMq135->setCaptureType($captureTypeEntities['CO2']);
+            $sensorMq135->setSensorType('mq135');
+            $sensorMq135->setEnabled(true);
+            $sensorMq135->setReadIntervalMs(10000);
+            $sensorMq135->setAdcPin(39);
+            $sensorMq135->setWarmupDurationSec(180);
+            $esp32Config->addSensor($sensorMq135);
+            $manager->persist($sensorMq135);
 
-        // Sensor Configuration - MQ135 for Air Quality (CO2)
-        $sensorMq135 = new DeviceSensor();
-        $sensorMq135->setAcquisitionSystem($esp32Config);
-        $sensorMq135->setCaptureType($captureTypeEntities['CO2']);
-        $sensorMq135->setSensorType('mq135');
-        $sensorMq135->setEnabled(true);
-        $sensorMq135->setReadIntervalMs(10000);
-        $sensorMq135->setAdcPin(39);
-        $sensorMq135->setWarmupDurationSec(180);
-        $esp32Config->addSensor($sensorMq135);
-        $manager->persist($sensorMq135);
+            // Task Configuration - Sensor Read
+            $taskSensorRead = new DeviceTask();
+            $taskSensorRead->setAcquisitionSystem($esp32Config);
+            $taskSensorRead->setTaskName('sensor_read');
+            $taskSensorRead->setEnabled(true);
+            $taskSensorRead->setIntervalMs(10000);
+            $taskSensorRead->setPriority(4);
+            $esp32Config->addTask($taskSensorRead);
+            $manager->persist($taskSensorRead);
 
-        // Task Configuration - Sensor Read
-        $taskSensorRead = new DeviceTask();
-        $taskSensorRead->setAcquisitionSystem($esp32Config);
-        $taskSensorRead->setTaskName('sensor_read');
-        $taskSensorRead->setEnabled(true);
-        $taskSensorRead->setIntervalMs(10000);
-        $taskSensorRead->setPriority(4);
-        $esp32Config->addTask($taskSensorRead);
-        $manager->persist($taskSensorRead);
+            // Task Configuration - API Post
+            $taskApiPost = new DeviceTask();
+            $taskApiPost->setAcquisitionSystem($esp32Config);
+            $taskApiPost->setTaskName('api_post');
+            $taskApiPost->setEnabled(true);
+            $taskApiPost->setIntervalMs(60000);
+            $taskApiPost->setPriority(3);
+            $taskApiPost->setTaskConfig([
+                'endpoint' => 'https://api.ecollact.fr/captures',
+                'room_id' => $roomEntities[$systemIndex]->getId()
+            ]);
+            $esp32Config->addTask($taskApiPost);
+            $manager->persist($taskApiPost);
 
-        // Task Configuration - API Post
-        $taskApiPost = new DeviceTask();
-        $taskApiPost->setAcquisitionSystem($esp32Config);
-        $taskApiPost->setTaskName('api_post');
-        $taskApiPost->setEnabled(true);
-        $taskApiPost->setIntervalMs(60000);
-        $taskApiPost->setPriority(3);
-        $taskApiPost->setTaskConfig([
-            'endpoint' => 'https://api.ecollact.fr/captures',
-            'room_id' => $roomEntities[2]->getId()
-        ]);
-        $esp32Config->addTask($taskApiPost);
-        $manager->persist($taskApiPost);
+            // Task Configuration - Display
+            $taskDisplay = new DeviceTask();
+            $taskDisplay->setAcquisitionSystem($esp32Config);
+            $taskDisplay->setTaskName('display');
+            $taskDisplay->setEnabled(true);
+            $taskDisplay->setIntervalMs(2000);
+            $taskDisplay->setPriority(2);
+            $taskDisplay->setTaskConfig([
+                'oled_width' => 128,
+                'oled_height' => 64
+            ]);
+            $esp32Config->addTask($taskDisplay);
+            $manager->persist($taskDisplay);
 
-        // Task Configuration - Display
-        $taskDisplay = new DeviceTask();
-        $taskDisplay->setAcquisitionSystem($esp32Config);
-        $taskDisplay->setTaskName('display');
-        $taskDisplay->setEnabled(true);
-        $taskDisplay->setIntervalMs(2000);
-        $taskDisplay->setPriority(2);
-        $taskDisplay->setTaskConfig([
-            'oled_width' => 128,
-            'oled_height' => 64
-        ]);
-        $esp32Config->addTask($taskDisplay);
-        $manager->persist($taskDisplay);
+            // Task Configuration - Blink
+            $taskBlink = new DeviceTask();
+            $taskBlink->setAcquisitionSystem($esp32Config);
+            $taskBlink->setTaskName('blink');
+            $taskBlink->setEnabled(true);
+            $taskBlink->setIntervalMs(1000);
+            $taskBlink->setPriority(1);
+            $taskBlink->setTaskConfig([
+                'led_pin' => 2
+            ]);
+            $esp32Config->addTask($taskBlink);
+            $manager->persist($taskBlink);
 
-        // Task Configuration - Blink
-        $taskBlink = new DeviceTask();
-        $taskBlink->setAcquisitionSystem($esp32Config);
-        $taskBlink->setTaskName('blink');
-        $taskBlink->setEnabled(true);
-        $taskBlink->setIntervalMs(1000);
-        $taskBlink->setPriority(1);
-        $taskBlink->setTaskConfig([
-            'led_pin' => 2
-        ]);
-        $esp32Config->addTask($taskBlink);
-        $manager->persist($taskBlink);
-
-        // System Configuration
-        $systemConfig = new DeviceSystemConfig();
-        $systemConfig->setAcquisitionSystem($esp32Config);
-        $systemConfig->setDebug(false);
-        $systemConfig->setBufferSize(100);
-        $systemConfig->setDeepSleepEnabled(false);
-        $systemConfig->setWebServerEnabled(true);
-        $systemConfig->setWebServerPort(80);
-        $esp32Config->setSystemConfig($systemConfig);
-        $manager->persist($systemConfig);
+            // System Configuration
+            $systemConfig = new DeviceSystemConfig();
+            $systemConfig->setAcquisitionSystem($esp32Config);
+            $systemConfig->setDebug(false);
+            $systemConfig->setBufferSize(100);
+            $systemConfig->setDeepSleepEnabled(false);
+            $systemConfig->setWebServerEnabled(true);
+            $systemConfig->setWebServerPort(80);
+            $esp32Config->setSystemConfig($systemConfig);
+            $manager->persist($systemConfig);
+        }
 
         // Create sample Captures
         $captureData = [

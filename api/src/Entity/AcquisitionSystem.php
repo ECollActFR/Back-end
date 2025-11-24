@@ -10,14 +10,12 @@ use Doctrine\ORM\Mapping as ORM;
 use Carbon\Carbon;
 use Symfony\Component\Serializer\Annotation\Groups;
 use Symfony\Component\Validator\Constraints as Assert;
-use Symfony\Bridge\Doctrine\Validator\Constraints\UniqueEntity;
 
 #[ORM\Entity(repositoryClass: AcquisitionSystemRepository::class)]
 #[ApiResource(
     normalizationContext: ['groups' => ['acquisitionSystem:read']],
     denormalizationContext: ['groups' => ['acquisitionSystem:write']]
 )]
-#[UniqueEntity(fields: ['macAddress'], message: 'Cette adresse MAC est déjà utilisée par un autre système d\'acquisition.')]
 class AcquisitionSystem
 {
     #[ORM\Id]
@@ -49,15 +47,6 @@ class AcquisitionSystem
     #[Assert\NotBlank(message: 'La version du firmware est obligatoire')]
     #[Assert\Length(max: 20)]
     private ?string $firmwareVersion = null;
-
-    #[ORM\Column(length: 17, unique: true)]
-    #[Groups(['acquisitionSystem:read', 'acquisitionSystem:write'])]
-    #[Assert\NotBlank(message: 'L\'adresse MAC est obligatoire')]
-    #[Assert\Regex(
-        pattern: '/^([0-9A-Fa-f]{2}[:-]){5}([0-9A-Fa-f]{2})$/',
-        message: 'L\'adresse MAC doit être au format AA:BB:CC:DD:EE:FF ou AA-BB-CC-DD-EE-FF'
-    )]
-    private ?string $macAddress = null;
 
     #[ORM\Column]
     #[Groups(['acquisitionSystem:read', 'acquisitionSystem:write'])]
@@ -142,17 +131,6 @@ class AcquisitionSystem
     public function setFirmwareVersion(string $firmwareVersion): static
     {
         $this->firmwareVersion = $firmwareVersion;
-        return $this;
-    }
-
-    public function getMacAddress(): ?string
-    {
-        return $this->macAddress;
-    }
-
-    public function setMacAddress(string $macAddress): static
-    {
-        $this->macAddress = $macAddress;
         return $this;
     }
 
