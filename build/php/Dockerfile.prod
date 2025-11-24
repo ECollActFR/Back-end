@@ -1,4 +1,4 @@
-FROM php:fpm
+FROM php:8.4-fpm
 
 # Login to container as root user
 USER root
