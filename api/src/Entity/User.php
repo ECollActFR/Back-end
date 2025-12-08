@@ -1,6 +1,13 @@
 <?php
 
 namespace App\Entity;
+use App\Entity\ClientAccount;
+use App\Dto\Input\UserInputDto;
+use App\Dto\Input\UserUpdateDto;
+use App\Dto\Output\UserOutputDto;
+use App\Dto\Output\TokenValidationOutputDto;
+use App\State\Processor\UserProcessor;
+use App\State\Provider\UserProvider;
 
 use ApiPlatform\Metadata\ApiResource;
 use ApiPlatform\Metadata\Delete;
@@ -22,21 +29,32 @@ use Symfony\Component\Serializer\Annotation\Groups;
 #[ORM\Entity(repositoryClass: UserRepository::class)]
 #[ORM\UniqueConstraint(name: 'UNIQ_IDENTIFIER_EMAIL', fields: ['email'])]
 #[ApiResource(
-    normalizationContext: ['groups' => ['user:read']],
-    denormalizationContext: ['groups' => ['user:write']],
+    input: UserInputDto::class,
+    output: UserOutputDto::class,
+    processor: UserProcessor::class,
+    provider: UserProvider::class,
     operations: [
-        new Get(),
+        new Get(security: "is_granted('view', object)"),
         new GetCollection(),
-        new Patch(),
-        new Post(),
-        new Delete(),
-        new Post(
-            uriTemplate: '/users/{id}/desactive',
-            controller: UsersController::class . '::desactivateUser'
+        new Patch(
+            input: UserUpdateDto::class,
+            security: "is_granted('edit', object)"
         ),
+        new Post(),
+        new Delete(security: "is_granted('delete', object)"),
+
+        // Opération custom: desactivate
+        new Post(
+            uriTemplate: '/users/{id}/desactivate',
+            security: "is_granted('edit', object)",
+            output: false,
+            processor: UserProcessor::class
+        ),
+
+        // Opération custom: /users/me
         new Get(
             uriTemplate: '/users/me',
-            controller: UsersController::class . '::getInfosForUser'
+            security: "is_granted('IS_AUTHENTICATED_FULLY')"
         )
     ]
 )]
@@ -104,6 +122,11 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     #[ORM\OneToMany(targetEntity: Building::class, mappedBy: 'owner', orphanRemoval: true)]
     #[Groups(['user:read', 'user:write'])]
     private Collection $buildings;
+
+    #[ORM\ManyToOne(inversedBy: 'users')]
+    #[ORM\JoinColumn(nullable: true)]
+    #[Groups(['user:read'])]
+    private ?ClientAccount $clientAccount = null;
 
     public function __construct(?string $firstname = null, ?string $lastname = null, ?string $email = null, ?string $phone = null) {
         $this->createdAt = Carbon::now();
@@ -324,6 +347,18 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
                 $building->setOwner(null);
             }
         }
+
+        return $this;
+    }
+
+    public function getClientAccount(): ?ClientAccount
+    {
+        return $this->clientAccount;
+    }
+
+    public function setClientAccount(?ClientAccount $clientAccount): static
+    {
+        $this->clientAccount = $clientAccount;
 
         return $this;
     }

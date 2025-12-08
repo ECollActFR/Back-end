@@ -20,6 +20,7 @@ final class UsersController extends AbstractController
     #[Route('/users/{id}/desactivate', name: 'desactivateUser')]
     public function desactivateUser(User $user): JsonResponse
     {
+        /** @var User $userAuthenticated */
         $userAuthenticated = $this->getUser();
         if (!$userAuthenticated || $userAuthenticated->getId() !== $user->getId()) {
             return $this->json([
@@ -38,14 +39,6 @@ final class UsersController extends AbstractController
         ]);
     }
 
-    #[Route(path: '/auth/validate', name: 'validateToken', methods: ['post'])]
-    public function validateToken() : JsonResponse {
-        $data = [
-            'success' => true,
-        ];
-        return $this->json($data);
-    }
-
     #[Route(path: '/users/me', name: 'getInfosForUser', methods: ['get'], priority: 10)]
     public function getInfosForUser() : JsonResponse {
         $userAuthenticated = $this->getUser();
@@ -61,5 +54,16 @@ final class UsersController extends AbstractController
             'user' => $this->getUser()
         ];
         return $this->json($data);
+    }
+
+    #[Route(path: '/auth/logout', name: 'logout', methods: ['post'])]
+    public function logout(): JsonResponse
+    {
+        // Pour JWT, la déconnexion est gérée côté client en supprimant le token
+        // On pourrait implémenter un système de blacklist si nécessaire
+        return $this->json([
+            'success' => true,
+            'message' => 'Déconnexion réussie.'
+        ]);
     }
 }

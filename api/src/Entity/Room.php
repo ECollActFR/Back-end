@@ -9,8 +9,9 @@ use ApiPlatform\Metadata\GetCollection;
 use ApiPlatform\Metadata\Patch;
 use ApiPlatform\Metadata\Post;
 use ApiPlatform\Metadata\Put;
-use App\Controller\RoomController;
 use App\Repository\RoomRepository;
+use App\State\Provider\RoomProvider;
+use App\State\Provider\RoomWithLastCapturesProvider;
 use Carbon\Carbon;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
@@ -19,19 +20,22 @@ use Symfony\Component\Serializer\Annotation\Groups;
 
 #[ORM\Entity(repositoryClass: RoomRepository::class)]
 #[ApiResource(
+    provider: RoomProvider::class,
     normalizationContext: ['groups' => ['room:read', 'capture:room']],
     denormalizationContext: ['groups' => ['room:write']],
     operations: [
-        new GetCollection(),
-        new Get(),
+        new GetCollection(security: "is_granted('ROLE_USER')"),
+        new Get(security: "is_granted('view', object)"),
         new Get(
             uriTemplate: '/rooms/{id}/lastCaptures',
-            controller: RoomController::class . '::getRoomWithLastCapture'
+            provider: RoomWithLastCapturesProvider::class,
+            normalizationContext: ['groups' => ['room:last_captures']],
+            security: "is_granted('view', object)"
         ),
-        new Post(),
-        new Put(),
-        new Patch(),
-        new Delete()
+        new Post(security: "is_granted('create', object)"),
+        new Put(security: "is_granted('edit', object)"),
+        new Patch(security: "is_granted('edit', object)"),
+        new Delete(security: "is_granted('delete', object)")
     ]
 )]
 class Room
@@ -85,7 +89,7 @@ class Room
     #[ORM\ManyToOne(inversedBy: 'rooms')]
     #[ORM\JoinColumn(nullable: false)]
     #[Groups(['room:read', 'room:write'])]
-    private ?Building $Building = null;
+    private ?Building $building = null;
 
     public function __construct()
     {
@@ -240,12 +244,12 @@ class Room
 
     public function getBuilding(): ?Building
     {
-        return $this->Building;
+        return $this->building;
     }
 
-    public function setBuilding(?Building $Building): static
+    public function setBuilding(?Building $building): static
     {
-        $this->Building = $Building;
+        $this->building = $building;
 
         return $this;
     }

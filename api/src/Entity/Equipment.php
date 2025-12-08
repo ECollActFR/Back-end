@@ -3,7 +3,16 @@
 namespace App\Entity;
 
 use ApiPlatform\Metadata\ApiResource;
+use ApiPlatform\Metadata\Delete;
+use ApiPlatform\Metadata\Get;
+use ApiPlatform\Metadata\GetCollection;
+use ApiPlatform\Metadata\Patch;
+use ApiPlatform\Metadata\Post;
+use App\Dto\Input\EquipmentInputDto;
+use App\Dto\Output\EquipmentOutputDto;
 use App\Repository\EquipmentRepository;
+use App\State\Processor\EquipmentProcessor;
+use App\State\Provider\EquipmentProvider;
 use Carbon\Carbon;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
@@ -12,8 +21,17 @@ use Symfony\Component\Serializer\Annotation\Groups;
 
 #[ORM\Entity(repositoryClass: EquipmentRepository::class)]
 #[ApiResource(
-    normalizationContext: ['groups' => ['equipment:read']],
-    denormalizationContext: ['groups' => ['equipment:write']]
+    input: EquipmentInputDto::class,
+    output: EquipmentOutputDto::class,
+    processor: EquipmentProcessor::class,
+    provider: EquipmentProvider::class,
+    operations: [
+        new Get(security: "is_granted('view', object)"),
+        new GetCollection(security: "is_granted('ROLE_USER')"),
+        new Post(security: "is_granted('create', object)"),
+        new Patch(security: "is_granted('edit', object)"),
+        new Delete(security: "is_granted('delete', object)"),
+    ]
 )]
 class Equipment
 {

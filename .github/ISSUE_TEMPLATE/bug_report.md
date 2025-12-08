@@ -6,16 +6,35 @@ labels: 'bug, needs-triage'
 assignees: ''
 ---
 
+<!-- 🤖 AUTOMATION: GitHub Actions will auto-label based on severity and environment -->
+<!-- 🏷️ AUTO-LABELS: critical, high, medium, low, production, staging, development -->
+<!-- 📊 AUTO-PROJECT: Will be added to appropriate project board based on impact -->
+
 ## 🐛 Description du bug
 
 <!-- Une description claire et concise du problème -->
 
-## 🔴 Sévérité
+## 🔴 Sévérité & Impact Métier
 
+**Sévérité technique :**
 - [ ] 🔥 Critique (application inutilisable, perte de données)
 - [ ] 🔴 Haute (fonctionnalité majeure cassée)
 - [ ] 🟠 Moyenne (fonctionnalité mineure cassée)
 - [ ] 🟡 Basse (problème cosmétique, workaround possible)
+
+**Impact métier :**
+- [ ] 💰 Impact financier direct (perte de revenus, coûts supplémentaires)
+- [ ] 👥 Impact utilisateur majeur (perte d'utilisateurs, insatisfaction)
+- [ ] ⚖️ Impact réglementaire/conformité
+- [ ] 📈 Impact sur les KPIs métier
+- [ ] 🔒 Impact sécurité
+- [ ] 📊 Impact reporting/analytics
+
+**Urgence :**
+- [ ] 🚨 Intervention immédiate (< 4h)
+- [ ] ⏰ Intervention prioritaire (< 24h)
+- [ ] 📅 Intervention planifiée (< 72h)
+- [ ] 🕐 Intervention normale (> 72h)
 
 ## 📋 Étapes pour reproduire
 
@@ -106,6 +125,38 @@ Content-Type: application/json
 - [ ] Se produit rarement
 - [ ] S'est produit une seule fois
 
+## 🤖 Triage Automatique
+
+**Catégorie automatique :**
+- [ ] API/Backend (Symfony, Doctrine, API Platform)
+- [ ] Base de données (MySQL, migrations)
+- [ ] Authentification/Sécurité (JWT, voters)
+- [ ] Performance (temps de réponse, mémoire)
+- [ ] Configuration/Déploiement (Docker, CI/CD)
+- [ ] Frontend/UX (si applicable)
+- [ ] Documentation/Tests
+
+**Composants affectés :**
+- [ ] Entity/Repository
+- [ ] Controller/API Resource
+- [ ] Security/Voter
+- [ ] Service/Processor
+- [ ] Migration/Schema
+- [ ] Configuration
+- [ ] Tests
+- [ ] Documentation
+
+**Intégration CI/CD :**
+- [ ] Bloque les déploiements en production
+- [ ] Bloque les déploiements en staging
+- [ ] Tests CI/CD en échec
+- [ ] Pipeline affecté : [ ] build [ ] test [ ] deploy [ ] security
+
+**Assignation automatique suggérée :**
+- Backend Lead : @username
+- DevOps : @username
+- QA : @username
+
 ## 🛠️ Solutions de contournement
 
 <!-- Y a-t-il un moyen temporaire de contourner ce problème ? -->
@@ -116,8 +167,9 @@ Content-Type: application/json
 <!-- - #123 -->
 <!-- - #456 -->
 
-## 📌 Tâches de résolution
+## 📌 Tâches de résolution & Checklist Revue
 
+**Tâches techniques :**
 - [ ] Identifier la cause racine
 - [ ] Écrire un test qui reproduit le bug
 - [ ] Corriger le bug
@@ -127,6 +179,50 @@ Content-Type: application/json
 - [ ] Mettre à jour la documentation si nécessaire
 - [ ] Déployer le correctif
 
+**Checklist revue code :**
+- [ ] Code respecte les conventions du projet
+- [ ] Tests unitaires ajoutés (>80% couverture)
+- [ ] Tests fonctionnels ajoutés
+- [ ] Documentation API mise à jour
+- [ ] Changelog mis à jour
+- [ ] Performance vérifiée (pas de régression)
+- [ ] Sécurité vérifiée
+- [ ] Compatibilité backward vérifiée
+
+**Vérification CI/CD :**
+- [ ] Pipeline build passe
+- [ ] Pipeline test passe
+- [ ] Pipeline security scan passe
+- [ ] Pipeline deploy staging réussi
+- [ ] Tests E2E en staging passent
+
+**Communication :**
+- [ ] Notifier les équipes impactées
+- [ ] Mettre à jour le statut du service
+- [ ] Communiquer aux utilisateurs (si nécessaire)
+- [ ] Documenter dans le runbook
+
 ## 💡 Contexte additionnel
 
-<!-- Toute autre information utile : quand le bug est apparu, impact utilisateur, données affectées, etc. -->
+**Historique :**
+- Date de première apparition :
+- Évolution du problème :
+- Déploiements récents liés :
+
+**Impact utilisateur :**
+- Nombre d'utilisateurs affectés :
+- Retours utilisateurs :
+- Tickets support liés :
+
+**Données affectées :**
+- Type de données :
+- Volume de données :
+- Backup disponible :
+
+**Monitoring & Alertes :**
+- Alertes déclenchées :
+- Métriques impactées :
+- Dashboards concernés :
+
+**Autre :**
+<!-- Toute autre information utile -->

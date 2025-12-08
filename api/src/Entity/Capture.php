@@ -7,6 +7,7 @@ use ApiPlatform\Metadata\Get;
 use ApiPlatform\Metadata\Post;
 use ApiPlatform\Metadata\GetCollection;
 use App\Repository\CaptureRepository;
+use App\State\Provider\CaptureProvider;
 use Carbon\Carbon;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
@@ -14,15 +15,25 @@ use Symfony\Component\Serializer\Annotation\Groups;
 
 #[ORM\Entity(repositoryClass: CaptureRepository::class)]
 #[ApiResource(
+    provider: CaptureProvider::class,
     paginationClientEnabled: true,
     paginationClientItemsPerPage: true,
     paginationEnabled: true,
     normalizationContext: ['groups' => ['capture:read']],
     denormalizationContext: ['groups' => ['capture:write']],
     operations: [
-        new Get(normalizationContext: ['groups' => ['capture:read', 'capture:room']]),
-        new GetCollection(normalizationContext: ['groups' => ['capture:read', 'capture:room']]),
-        new Post(normalizationContext: ['groups' => ['capture:write']])
+        new Get(
+            normalizationContext: ['groups' => ['capture:read', 'capture:room']],
+            security: "is_granted('view', object)"
+        ),
+        new GetCollection(
+            normalizationContext: ['groups' => ['capture:read', 'capture:room']],
+            security: "is_granted('ROLE_USER')"
+        ),
+        new Post(
+            normalizationContext: ['groups' => ['capture:write']],
+            security: "is_granted('create', object)"
+        )
     ]
 )]
 class Capture

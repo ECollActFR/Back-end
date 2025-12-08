@@ -3,15 +3,33 @@
 namespace App\Entity;
 
 use ApiPlatform\Metadata\ApiResource;
+use ApiPlatform\Metadata\Delete;
+use ApiPlatform\Metadata\Get;
+use ApiPlatform\Metadata\GetCollection;
+use ApiPlatform\Metadata\Patch;
+use ApiPlatform\Metadata\Post;
+use App\Dto\Input\CaptureTypeInputDto;
+use App\Dto\Output\CaptureTypeOutputDto;
 use App\Repository\CaptureTypeRepository;
+use App\State\Processor\CaptureTypeProcessor;
+use App\State\Provider\CaptureTypeProvider;
 use Carbon\Carbon;
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Serializer\Annotation\Groups;
 
 #[ORM\Entity(repositoryClass: CaptureTypeRepository::class)]
 #[ApiResource(
-    normalizationContext: ['groups' => ['captureType:read']],
-    denormalizationContext: ['groups' => ['captureType:write']]
+    input: CaptureTypeInputDto::class,
+    output: CaptureTypeOutputDto::class,
+    processor: CaptureTypeProcessor::class,
+    provider: CaptureTypeProvider::class,
+    operations: [
+        new Get(security: "is_granted('view', object)"),
+        new GetCollection(security: "is_granted('ROLE_USER')"),
+        new Post(security: "is_granted('create', object)"),
+        new Patch(security: "is_granted('edit', object)"),
+        new Delete(security: "is_granted('delete', object)"),
+    ]
 )]
 class CaptureType
 {

@@ -5,6 +5,7 @@ namespace App\DataFixtures;
 use App\Entity\AcquisitionSystem;
 use App\Entity\Building;
 use App\Entity\CaptureType;
+use App\Entity\ClientAccount;
 use App\Entity\DeviceNetworkConfig;
 use App\Entity\DeviceSensor;
 use App\Entity\DeviceSystemConfig;
@@ -28,17 +29,121 @@ class AppFixtures extends Fixture
 
     public function load(ObjectManager $manager): void
     {
+        // Create Client Accounts
+        $clientAccounts = [];
+        
+        // Neutria SAS - entreprise principale
+        $neutriaAccount = new ClientAccount("Neutria SAS");
+        $neutriaAccount->setSiret("12345678901234");
+        $neutriaAccount->setAddress("15 Rue de la République");
+        $neutriaAccount->setCity("Paris");
+        $neutriaAccount->setPostalCode("75001");
+        $neutriaAccount->setCountry("France");
+        $neutriaAccount->setPhone("+33123456789");
+        $neutriaAccount->setContactEmail("contact@neutria.fr");
+        $manager->persist($neutriaAccount);
+        $clientAccounts['Neutria SAS'] = $neutriaAccount;
 
-        $user = new User("Alexis", "Baron", "alexis.baron.nsd@gmail.com", "+33782058609");
-        $user->setRoles(["ROLE_USER"]);
-        $user->setPassword($this->userPasswordHasher->hashPassword($user, "password"));
-        $manager->persist($user);
+        // TechCorp - entreprise secondaire
+        $techcorpAccount = new ClientAccount("TechCorp");
+        $techcorpAccount->setSiret("98765432109876");
+        $techcorpAccount->setAddress("42 Avenue Innovation");
+        $techcorpAccount->setCity("Lyon");
+        $techcorpAccount->setPostalCode("69000");
+        $techcorpAccount->setCountry("France");
+        $techcorpAccount->setPhone("+33456789012");
+        $techcorpAccount->setContactEmail("info@techcorp.com");
+        $manager->persist($techcorpAccount);
+        $clientAccounts['TechCorp'] = $techcorpAccount;
 
-        // Create Building
-        $building = new Building();
-        $building->setName("Bâtiment Principal");
-        $building->setOwner($user);
-        $manager->persist($building);
+        // StartUp Innovation - petite entreprise
+        $startupAccount = new ClientAccount("StartUp Innovation");
+        $startupAccount->setSiret("45678901234567");
+        $startupAccount->setAddress("7 Rue du Progrès");
+        $startupAccount->setCity("Marseille");
+        $startupAccount->setPostalCode("13001");
+        $startupAccount->setCountry("France");
+        $startupAccount->setPhone("+33412345678");
+        $startupAccount->setContactEmail("hello@startup.fr");
+        $manager->persist($startupAccount);
+        $clientAccounts['StartUp Innovation'] = $startupAccount;
+
+        // Create Users and associate them to client accounts
+        $users = [];
+        
+        // Users for Neutria SAS
+        $user1 = new User("Alexis", "Baron", "alexis.baron.nsd@gmail.com", "+33782058609");
+        $user1->setRoles(["ROLE_SUPER_ADMIN"]);
+        $user1->setPassword($this->userPasswordHasher->hashPassword($user1, "password"));
+        $user1->setClientAccount($neutriaAccount);
+        $manager->persist($user1);
+        $users['Alexis'] = $user1;
+
+        $user2 = new User("Marie", "Dupont", "marie.dupont@example.com", "+33612345678");
+        $user2->setRoles(["ROLE_USER"]);
+        $user2->setPassword($this->userPasswordHasher->hashPassword($user2, "password"));
+        $user2->setClientAccount($neutriaAccount);
+        $manager->persist($user2);
+        $users['Marie'] = $user2;
+
+        // Users for TechCorp
+        $user3 = new User("Thomas", "Martin", "thomas.martin@techcorp.com", "+33698765432");
+        $user3->setRoles(["ROLE_USER"]);
+        $user3->setPassword($this->userPasswordHasher->hashPassword($user3, "password"));
+        $user3->setClientAccount($techcorpAccount);
+        $manager->persist($user3);
+        $users['Thomas'] = $user3;
+
+        $user4 = new User("Sophie", "Bernard", "sophie.bernard@techcorp.com", "+33611111111");
+        $user4->setRoles(["ROLE_USER"]);
+        $user4->setPassword($this->userPasswordHasher->hashPassword($user4, "password"));
+        $user4->setClientAccount($techcorpAccount);
+        $manager->persist($user4);
+        $users['Sophie'] = $user4;
+
+        // User for StartUp Innovation
+        $user5 = new User("Lucas", "Petit", "lucas.petit@startup.fr", "+33622222222");
+        $user5->setRoles(["ROLE_USER"]);
+        $user5->setPassword($this->userPasswordHasher->hashPassword($user5, "password"));
+        $user5->setClientAccount($startupAccount);
+        $manager->persist($user5);
+        $users['Lucas'] = $user5;
+
+        // Create Buildings for each client account
+        $buildings = [];
+        
+        // Buildings for Neutria SAS
+        $building1 = new Building();
+        $building1->setName("Bâtiment Principal");
+        $building1->setOwner($user1);
+        $manager->persist($building1);
+        $buildings['Neutria']['Principal'] = $building1;
+
+        $building2 = new Building();
+        $building2->setName("Bâtiment Secondaire");
+        $building2->setOwner($user2);
+        $manager->persist($building2);
+        $buildings['Neutria']['Secondaire'] = $building2;
+
+        // Buildings for TechCorp
+        $building3 = new Building();
+        $building3->setName("Siège Social");
+        $building3->setOwner($user3);
+        $manager->persist($building3);
+        $buildings['TechCorp']['Siège'] = $building3;
+
+        $building4 = new Building();
+        $building4->setName("Annexe Technique");
+        $building4->setOwner($user4);
+        $manager->persist($building4);
+        $buildings['TechCorp']['Annexe'] = $building4;
+
+        // Building for StartUp Innovation
+        $building5 = new Building();
+        $building5->setName("Open Space Principal");
+        $building5->setOwner($user5);
+        $manager->persist($building5);
+        $buildings['Startup']['Principal'] = $building5;
         
         // Create CaptureTypes
         $captureTypes = [
@@ -75,83 +180,128 @@ class AppFixtures extends Fixture
             $equipmentEntities[$name] = $equipment;
         }
 
-        // Create Rooms with their available CaptureTypes and Equipment
+        // Create Rooms for each client account
         $roomsData = [
-            [
-                'name' => 'Bureau A1',
-                'description' => 'Bureau individuel côté sud',
-                'captureTypes' => ['Temperature', 'Humidité', 'CO2'],
-                'equipment' => ['Ordinateur', 'Ecrans', 'Chaises'],
-                'acquisitionSystem' => 'Sensor-A1-001'
+            'Neutria' => [
+                'Principal' => [
+                    [
+                        'name' => 'Bureau A1',
+                        'description' => 'Bureau individuel côté sud',
+                        'captureTypes' => ['Temperature', 'Humidité', 'CO2'],
+                        'equipment' => ['Ordinateur', 'Ecrans', 'Chaises'],
+                        'acquisitionSystem' => 'Sensor-A1-001'
+                    ],
+                    [
+                        'name' => 'Bureau A2',
+                        'description' => 'Bureau individuel côté nord',
+                        'captureTypes' => ['Temperature', 'Humidité', 'CO2'],
+                        'equipment' => ['Ordinateur', 'Ecrans', 'Chaises'],
+                        'acquisitionSystem' => 'Sensor-A2-001'
+                    ],
+                    [
+                        'name' => 'Open Space',
+                        'description' => 'Espace partagé 20 pers',
+                        'captureTypes' => ['Temperature', 'Humidité', 'CO2', 'Luminosité', 'Bruit'],
+                        'equipment' => ['Ordinateur', 'Wifi', 'Ecrans', 'Chaises'],
+                        'acquisitionSystem' => 'Sensor-OS-001'
+                    ],
+                ],
+                'Secondaire' => [
+                    [
+                        'name' => 'Réunion',
+                        'description' => 'Salle réunion 8 pers',
+                        'captureTypes' => ['Temperature', 'Humidité', 'CO2', 'Bruit'],
+                        'equipment' => ['Wifi', 'Ecrans', 'Chaises'],
+                        'acquisitionSystem' => 'Sensor-RE-001'
+                    ],
+                    [
+                        'name' => 'Kitchen',
+                        'description' => 'Espace détente',
+                        'captureTypes' => ['Temperature', 'Humidité'],
+                        'equipment' => ['Machine à café', 'Fontaine à eau', 'Chaises'],
+                        'acquisitionSystem' => 'Sensor-KT-001'
+                    ],
+                ]
             ],
-            [
-                'name' => 'Bureau A2',
-                'description' => 'Bureau individuel côté nord',
-                'captureTypes' => ['Temperature', 'Humidité', 'CO2'],
-                'equipment' => ['Ordinateur', 'Ecrans', 'Chaises'],
-                'acquisitionSystem' => 'Sensor-A2-001'
+            'TechCorp' => [
+                'Siège' => [
+                    [
+                        'name' => 'Bureau Tech',
+                        'description' => 'Espace développement',
+                        'captureTypes' => ['Temperature', 'Humidité', 'CO2', 'Luminosité'],
+                        'equipment' => ['Ordinateur', 'Wifi', 'Ecrans', 'Chaises'],
+                        'acquisitionSystem' => 'Sensor-TC-001'
+                    ],
+                    [
+                        'name' => 'Labo R&D',
+                        'description' => 'Laboratoire recherche',
+                        'captureTypes' => ['Temperature', 'Humidité', 'CO2', 'Bruit'],
+                        'equipment' => ['Ordinateur', 'Ecrans', 'Chaises'],
+                        'acquisitionSystem' => 'Sensor-LAB-001'
+                    ],
+                ],
+                'Annexe' => [
+                    [
+                        'name' => 'Atelier',
+                        'description' => 'Espace de production',
+                        'captureTypes' => ['Temperature', 'Humidité', 'Bruit'],
+                        'equipment' => ['Chaises'],
+                        'acquisitionSystem' => 'Sensor-AT-001'
+                    ],
+                ]
             ],
-            [
-                'name' => 'Open Space',
-                'description' => 'Espace partagé 20 pers',
-                'captureTypes' => ['Temperature', 'Humidité', 'CO2', 'Luminosité', 'Bruit'],
-                'equipment' => ['Ordinateur', 'Wifi', 'Ecrans', 'Chaises'],
-                'acquisitionSystem' => 'Sensor-OS-001'
-            ],
-            [
-                'name' => 'Réunion',
-                'description' => 'Salle réunion 8 pers',
-                'captureTypes' => ['Temperature', 'Humidité', 'CO2', 'Bruit'],
-                'equipment' => ['Wifi', 'Ecrans', 'Chaises'],
-                'acquisitionSystem' => 'Sensor-RE-001'
-            ],
-            [
-                'name' => 'Kitchen',
-                'description' => 'Espace détente',
-                'captureTypes' => ['Temperature', 'Humidité'],
-                'equipment' => ['Machine à café', 'Fontaine à eau', 'Chaises'],
-                'acquisitionSystem' => 'Sensor-KT-001'
-            ],
-            [
-                'name' => 'Hall',
-                'description' => 'Hall accueil',
-                'captureTypes' => ['Temperature', 'Luminosité'],
-                'equipment' => ['Chaises'],
-                'acquisitionSystem' => 'Sensor-HL-001'
-            ],
+            'Startup' => [
+                'Principal' => [
+                    [
+                        'name' => 'Open Space',
+                        'description' => 'Espace travail collaboratif',
+                        'captureTypes' => ['Temperature', 'Humidité', 'CO2', 'Luminosité', 'Bruit'],
+                        'equipment' => ['Ordinateur', 'Wifi', 'Ecrans', 'Chaises'],
+                        'acquisitionSystem' => 'Sensor-ST-001'
+                    ],
+                ]
+            ]
         ];
 
         $roomEntities = [];
         $acquisitionSystemEntities = [];
-        foreach ($roomsData as $index => $roomData) {
-            $room = new Room();
-            $room->setName($roomData['name']);
-            $room->setDescription($roomData['description']);
-            $room->setBuilding($building); // Associate room with building
 
-            // Add capture types to room
-            foreach ($roomData['captureTypes'] as $typeName) {
-                $room->addCaptureType($captureTypeEntities[$typeName]);
+        // Process rooms for all client accounts
+        foreach ($roomsData as $company => $buildingsRooms) {
+            foreach ($buildingsRooms as $buildingKey => $roomsData) {
+                $currentBuilding = $buildings[$company === 'Startup' ? 'Startup' : $company][$buildingKey];
+                
+                foreach ($roomsData as $roomData) {
+                    $room = new Room();
+                    $room->setName($roomData['name']);
+                    $room->setDescription($roomData['description']);
+                    $room->setBuilding($currentBuilding);
+
+                    // Add capture types to room
+                    foreach ($roomData['captureTypes'] as $typeName) {
+                        $room->addCaptureType($captureTypeEntities[$typeName]);
+                    }
+
+                    // Add equipment to room
+                    foreach ($roomData['equipment'] as $equipmentName) {
+                        $room->addEquipment($equipmentEntities[$equipmentName]);
+                    }
+
+                    // Add acquisition system to room
+                    $acquisitionSystem = new AcquisitionSystem();
+                    $acquisitionSystem->setName($roomData['acquisitionSystem']);
+                    $acquisitionSystem->setRoom($room);
+                    $acquisitionSystem->setDeviceType('ESP32_WROOM');
+                    $acquisitionSystem->setFirmwareVersion('3.0.0');
+                    $acquisitionSystem->setIsActive(true);
+                    $room->addAcquisitionSystem($acquisitionSystem);
+
+                    $manager->persist($room);
+                    $manager->persist($acquisitionSystem);
+                    $roomEntities[] = $room;
+                    $acquisitionSystemEntities[] = $acquisitionSystem;
+                }
             }
-
-            // Add equipment to room
-            foreach ($roomData['equipment'] as $equipmentName) {
-                $room->addEquipment($equipmentEntities[$equipmentName]);
-            }
-
-            // Add acquisition system to room
-            $acquisitionSystem = new AcquisitionSystem();
-            $acquisitionSystem->setName($roomData['acquisitionSystem']);
-            $acquisitionSystem->setRoom($room);
-            $acquisitionSystem->setDeviceType('ESP32_WROOM');
-            $acquisitionSystem->setFirmwareVersion('3.0.0');
-            $acquisitionSystem->setIsActive(true);
-            $room->addAcquisitionSystem($acquisitionSystem);
-
-            $manager->persist($room);
-            $manager->persist($acquisitionSystem);
-            $roomEntities[] = $room;
-            $acquisitionSystemEntities[] = $acquisitionSystem;
         }
 
         // Configure all acquisition systems with ESP32 configuration
@@ -276,9 +426,7 @@ class AppFixtures extends Fixture
         ];
 
         foreach ($roomEntities as $room) {
-            $hourOffset = 0;
-
-            // Create captures only for types available in the room
+            // Create captures only for types available in room
             foreach ($room->getCaptureTypes() as $captureType) {
                 $typeName = $captureType->getName();
                 $data = $captureData[$typeName];
@@ -292,7 +440,6 @@ class AppFixtures extends Fixture
                     $capture->setRoom($room);
                     $capture->setType($captureType);
                     $manager->persist($capture);
-                    $hourOffset++;
                 }
             }
         }

@@ -1,5 +1,4 @@
-name: 'neutria-backend'
-
+name: 'ecollact'
 services:
   nginx:
     build:
@@ -58,7 +57,6 @@ services:
 
 networks:
   network:
-    name : ${COMPOSE_PROJECT_NAME}-network
     driver: bridge
 
 volumes:

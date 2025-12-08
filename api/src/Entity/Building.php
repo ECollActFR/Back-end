@@ -3,13 +3,28 @@
 namespace App\Entity;
 
 use ApiPlatform\Metadata\ApiResource;
+use ApiPlatform\Metadata\Delete;
+use ApiPlatform\Metadata\Get;
+use ApiPlatform\Metadata\GetCollection;
+use ApiPlatform\Metadata\Patch;
+use ApiPlatform\Metadata\Post;
 use App\Repository\BuildingRepository;
+use App\State\Provider\BuildingProvider;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
 
 #[ORM\Entity(repositoryClass: BuildingRepository::class)]
-#[ApiResource]
+#[ApiResource(
+    provider: BuildingProvider::class,
+    operations: [
+        new Get(security: "is_granted('view', object)"),
+        new GetCollection(security: "is_granted('ROLE_USER')"),
+        new Post(security: "is_granted('create', object)"),
+        new Patch(security: "is_granted('edit', object)"),
+        new Delete(security: "is_granted('delete', object)"),
+    ]
+)]
 class Building
 {
     #[ORM\Id]
@@ -27,7 +42,7 @@ class Building
     /**
      * @var Collection<int, Room>
      */
-    #[ORM\OneToMany(targetEntity: Room::class, mappedBy: 'Building', orphanRemoval: true)]
+    #[ORM\OneToMany(targetEntity: Room::class, mappedBy: 'building', orphanRemoval: true)]
     private Collection $rooms;
 
     public function __construct()

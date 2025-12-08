@@ -3,7 +3,12 @@
 namespace App\Entity;
 
 use ApiPlatform\Metadata\ApiResource;
+use ApiPlatform\Metadata\Get;
+use ApiPlatform\Metadata\GetCollection;
+use ApiPlatform\Metadata\Patch;
+use ApiPlatform\Metadata\Post;
 use App\Repository\AcquisitionSystemRepository;
+use App\State\Provider\AcquisitionSystemProvider;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
@@ -13,8 +18,19 @@ use Symfony\Component\Validator\Constraints as Assert;
 
 #[ORM\Entity(repositoryClass: AcquisitionSystemRepository::class)]
 #[ApiResource(
+    provider: AcquisitionSystemProvider::class,
     normalizationContext: ['groups' => ['acquisitionSystem:read']],
-    denormalizationContext: ['groups' => ['acquisitionSystem:write']]
+    denormalizationContext: ['groups' => ['acquisitionSystem:write']],
+    operations: [
+        new Get(
+            uriTemplate: '/acquisition_systems/{id}/configuration',
+            security: "is_granted('view', object)"
+        ),
+        new Get(security: "is_granted('view', object)"),
+        new GetCollection(security: "is_granted('ROLE_USER')"),
+        new Post(security: "is_granted('create', object)"),
+        new Patch(security: "is_granted('edit', object)")
+    ]
 )]
 class AcquisitionSystem
 {
