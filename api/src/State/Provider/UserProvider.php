@@ -2,6 +2,8 @@
 
 namespace App\State\Provider;
 
+use ApiPlatform\Doctrine\Orm\State\CollectionProvider;
+use ApiPlatform\Doctrine\Orm\State\ItemProvider;
 use ApiPlatform\Metadata\CollectionOperationInterface;
 use ApiPlatform\Metadata\Operation;
 use ApiPlatform\State\ProviderInterface;
@@ -14,6 +16,8 @@ use Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorageInt
 final class UserProvider implements ProviderInterface
 {
     public function __construct(
+        private CollectionProvider $collectionProvider,
+        private ItemProvider $itemProvider,
         private UserRepository $repository,
         private UserMapper $mapper,
         private TokenStorageInterface $tokenStorage,
@@ -22,12 +26,12 @@ final class UserProvider implements ProviderInterface
     public function provide(Operation $operation, array $uriVariables = [], array $context = []): object|array|null
     {
         // Gestion /users/me
-        if ($operation->getUriTemplate() === '/users/me') {
+        if ($operation->getName() === 'get_me') {
             return $this->handleGetMe();
         }
 
         // Gestion /auth/validate
-        if ($operation->getUriTemplate() === '/auth/validate') {
+        if ($operation->getName() === 'validate_token') {
             return $this->handleValidateToken();
         }
 
@@ -36,30 +40,36 @@ final class UserProvider implements ProviderInterface
             $user = $this->tokenStorage->getToken()?->getUser();
             
             if ($user && $user instanceof User && method_exists($user, 'getClientAccount') && $user->getClientAccount()) {
-                // Si super admin, retourner tous les utilisateurs
+                // Si super admin, utiliser le provider par défaut sans filtrage
                 if (in_array('ROLE_SUPER_ADMIN', $user->getRoles())) {
-                    $users = $this->repository->findAll();
+                    $users = $this->collectionProvider->provide($operation, $uriVariables, $context);
                 } else {
-                    // Sinon, retourner uniquement les utilisateurs du même compte client
+                    // Sinon, créer un query builder avec filtrage et laisser API Platform gérer la pagination
                     $clientAccount = $user->getClientAccount();
-                    $users = $this->repository->createQueryBuilder('u')
+                    $qb = $this->repository->createQueryBuilder('u')
                         ->where('u.clientAccount = :clientAccount')
-                        ->setParameter('clientAccount', $clientAccount)
-                        ->getQuery()
-                        ->getResult();
+                        ->setParameter('clientAccount', $clientAccount);
+                    
+                    $context['query_builder'] = $qb;
+                    $users = $this->collectionProvider->provide($operation, $uriVariables, $context);
                 }
             } else {
-                $users = $this->repository->findAll();
+                $users = $this->collectionProvider->provide($operation, $uriVariables, $context);
             }
             
-            return array_map(
-                fn($user) => $this->mapper->mapEntityToOutputDto($user),
-                $users
-            );
+            // Mapper les résultats en DTOs
+            if (is_array($users)) {
+                return array_map(
+                    fn($user) => $this->mapper->mapEntityToOutputDto($user),
+                    $users
+                );
+            }
+            
+            return $users;
         }
 
         // Get single
-        $user = $this->repository->find($uriVariables['id']);
+        $user = $this->itemProvider->provide($operation, $uriVariables, $context);
         return $user ? $this->mapper->mapEntityToOutputDto($user) : null;
     }
 

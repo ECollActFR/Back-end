@@ -2,9 +2,10 @@
 
 namespace App\State\Provider;
 
+use ApiPlatform\Doctrine\Orm\State\CollectionProvider;
+use ApiPlatform\Doctrine\Orm\State\ItemProvider;
 use ApiPlatform\Metadata\Operation;
 use ApiPlatform\State\ProviderInterface;
-use App\Entity\Room;
 use App\Entity\User;
 use App\Repository\RoomRepository;
 use App\Service\ClientAccountAccessService;
@@ -13,6 +14,8 @@ use Symfony\Bundle\SecurityBundle\Security;
 class RoomProvider implements ProviderInterface
 {
     public function __construct(
+        private CollectionProvider $collectionProvider,
+        private ItemProvider $itemProvider,
         private RoomRepository $roomRepository,
         private Security $security,
         private ClientAccountAccessService $clientAccountAccessService
@@ -23,7 +26,7 @@ class RoomProvider implements ProviderInterface
         $user = $this->security->getUser();
         
         if ($operation->getName() === 'get') {
-            $room = $this->roomRepository->find($uriVariables['id']);
+            $room = $this->itemProvider->provide($operation, $uriVariables, $context);
             
             // Vérifier que l'utilisateur a accès à cette room
             if ($room && $user && $this->clientAccountAccessService->canAccessResource($room, $user)) {
@@ -35,20 +38,23 @@ class RoomProvider implements ProviderInterface
 
         // Pour les collections, filtrer par compte client
         if ($user && $user instanceof User && method_exists($user, 'getClientAccount') && $user->getClientAccount()) {
-            // Si super admin, retourner toutes les rooms
+            // Si super admin, utiliser le provider par défaut sans filtrage
             if (in_array('ROLE_SUPER_ADMIN', $user->getRoles())) {
-                return $this->roomRepository->findAll();
+                return $this->collectionProvider->provide($operation, $uriVariables, $context);
             }
             
-            // Sinon, filtrer par client account
+            // Sinon, créer un query builder avec filtrage et laisser API Platform gérer la pagination
             $clientAccount = $user->getClientAccount();
-            return $this->roomRepository->createQueryBuilder('r')
+            $qb = $this->roomRepository->createQueryBuilder('r')
                 ->join('r.building', 'b')
                 ->join('b.owner', 'u')
                 ->where('u.clientAccount = :clientAccount')
-                ->setParameter('clientAccount', $clientAccount)
-                ->getQuery()
-                ->getResult();
+                ->setParameter('clientAccount', $clientAccount);
+            
+            // Ajouter le query builder au contexte pour qu'API Platform l'utilise
+            $context['query_builder'] = $qb;
+            
+            return $this->collectionProvider->provide($operation, $uriVariables, $context);
         }
 
         return [];

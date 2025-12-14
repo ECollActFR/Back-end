@@ -2,15 +2,18 @@
 
 namespace App\State\Provider;
 
+use ApiPlatform\Doctrine\Orm\State\CollectionProvider;
+use ApiPlatform\Doctrine\Orm\State\ItemProvider;
 use ApiPlatform\Metadata\Operation;
 use ApiPlatform\State\ProviderInterface;
-use App\Entity\AcquisitionSystem;
 use App\Repository\AcquisitionSystemRepository;
 use Symfony\Bundle\SecurityBundle\Security;
 
 class AcquisitionSystemProvider implements ProviderInterface
 {
     public function __construct(
+        private CollectionProvider $collectionProvider,
+        private ItemProvider $itemProvider,
         private AcquisitionSystemRepository $acquisitionSystemRepository,
         private Security $security
     ) {}
@@ -20,18 +23,22 @@ class AcquisitionSystemProvider implements ProviderInterface
         $user = $this->security->getUser();
         
         if ($operation->getName() === 'get') {
-            return $this->acquisitionSystemRepository->find($uriVariables['id']);
+            return $this->itemProvider->provide($operation, $uriVariables, $context);
         }
 
         // Pour les collections, filtrer par propriétaire du building de la room
         if ($user && method_exists($user, 'getId')) {
-            return $this->acquisitionSystemRepository->createQueryBuilder('a')
+            // Créer un query builder avec filtrage et laisser API Platform gérer la pagination
+            $qb = $this->acquisitionSystemRepository->createQueryBuilder('a')
                 ->join('a.room', 'r')
                 ->join('r.building', 'b')
                 ->where('b.owner = :user')
-                ->setParameter('user', $user)
-                ->getQuery()
-                ->getResult();
+                ->setParameter('user', $user);
+            
+            // Ajouter le query builder au contexte pour qu'API Platform l'utilise
+            $context['query_builder'] = $qb;
+            
+            return $this->collectionProvider->provide($operation, $uriVariables, $context);
         }
 
         return [];

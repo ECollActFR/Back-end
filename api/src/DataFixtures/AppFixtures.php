@@ -68,6 +68,18 @@ class AppFixtures extends Fixture
         $manager->persist($startupAccount);
         $clientAccounts['StartUp Innovation'] = $startupAccount;
 
+        // EcoGreen Solutions - entreprise écologique
+        $ecogreenAccount = new ClientAccount("EcoGreen Solutions");
+        $ecogreenAccount->setSiret("78901234567890");
+        $ecogreenAccount->setAddress("123 Avenue de la Nature");
+        $ecogreenAccount->setCity("Bordeaux");
+        $ecogreenAccount->setPostalCode("33000");
+        $ecogreenAccount->setCountry("France");
+        $ecogreenAccount->setPhone("+33556789012");
+        $ecogreenAccount->setContactEmail("contact@ecogreen.fr");
+        $manager->persist($ecogreenAccount);
+        $clientAccounts['EcoGreen Solutions'] = $ecogreenAccount;
+
         // Create Users and associate them to client accounts
         $users = [];
         
@@ -109,25 +121,47 @@ class AppFixtures extends Fixture
         $manager->persist($user5);
         $users['Lucas'] = $user5;
 
+        // Users for EcoGreen Solutions
+        $user6 = new User("Emma", "Durand", "emma.durand@ecogreen.fr", "+33633333333");
+        $user6->setRoles(["ROLE_ADMIN"]);
+        $user6->setPassword($this->userPasswordHasher->hashPassword($user6, "password"));
+        $user6->setClientAccount($ecogreenAccount);
+        $manager->persist($user6);
+        $users['Emma'] = $user6;
+
+        $user7 = new User("Nicolas", "Rousseau", "nicolas.rousseau@ecogreen.fr", "+33644444444");
+        $user7->setRoles(["ROLE_USER"]);
+        $user7->setPassword($this->userPasswordHasher->hashPassword($user7, "password"));
+        $user7->setClientAccount($ecogreenAccount);
+        $manager->persist($user7);
+        $users['Nicolas'] = $user7;
+
+        $user8 = new User("Chloé", "Lefebvre", "chloe.lefebvre@ecogreen.fr", "+33655555555");
+        $user8->setRoles(["ROLE_USER"]);
+        $user8->setPassword($this->userPasswordHasher->hashPassword($user8, "password"));
+        $user8->setClientAccount($ecogreenAccount);
+        $manager->persist($user8);
+        $users['Chloé'] = $user8;
+
         // Create Buildings for each client account
         $buildings = [];
         
         // Buildings for Neutria SAS
         $building1 = new Building();
-        $building1->setName("Bâtiment Principal");
+        $building1->setName("Batiment Principal");
         $building1->setOwner($user1);
         $manager->persist($building1);
         $buildings['Neutria']['Principal'] = $building1;
 
         $building2 = new Building();
-        $building2->setName("Bâtiment Secondaire");
+        $building2->setName("Batiment Secondaire");
         $building2->setOwner($user2);
         $manager->persist($building2);
         $buildings['Neutria']['Secondaire'] = $building2;
 
         // Buildings for TechCorp
         $building3 = new Building();
-        $building3->setName("Siège Social");
+        $building3->setName("Siege Social");
         $building3->setOwner($user3);
         $manager->persist($building3);
         $buildings['TechCorp']['Siège'] = $building3;
@@ -140,10 +174,23 @@ class AppFixtures extends Fixture
 
         // Building for StartUp Innovation
         $building5 = new Building();
-        $building5->setName("Open Space Principal");
+        $building5->setName("Open Space");
         $building5->setOwner($user5);
         $manager->persist($building5);
         $buildings['Startup']['Principal'] = $building5;
+
+        // Buildings for EcoGreen Solutions
+        $building6 = new Building();
+        $building6->setName("Siege Eco");
+        $building6->setOwner($user6);
+        $manager->persist($building6);
+        $buildings['EcoGreen']['Siège'] = $building6;
+
+        $building7 = new Building();
+        $building7->setName("Labo Eco");
+        $building7->setOwner($user7);
+        $manager->persist($building7);
+        $buildings['EcoGreen']['Labo'] = $building7;
         
         // Create CaptureTypes
         $captureTypes = [
@@ -189,37 +236,37 @@ class AppFixtures extends Fixture
                         'description' => 'Bureau individuel côté sud',
                         'captureTypes' => ['Temperature', 'Humidité', 'CO2'],
                         'equipment' => ['Ordinateur', 'Ecrans', 'Chaises'],
-                        'acquisitionSystem' => 'Sensor-A1-001'
+                        'acquisitionSystem' => 'Sensor-A1'
                     ],
                     [
                         'name' => 'Bureau A2',
                         'description' => 'Bureau individuel côté nord',
                         'captureTypes' => ['Temperature', 'Humidité', 'CO2'],
                         'equipment' => ['Ordinateur', 'Ecrans', 'Chaises'],
-                        'acquisitionSystem' => 'Sensor-A2-001'
+                        'acquisitionSystem' => 'Sensor-A2'
                     ],
                     [
                         'name' => 'Open Space',
                         'description' => 'Espace partagé 20 pers',
                         'captureTypes' => ['Temperature', 'Humidité', 'CO2', 'Luminosité', 'Bruit'],
                         'equipment' => ['Ordinateur', 'Wifi', 'Ecrans', 'Chaises'],
-                        'acquisitionSystem' => 'Sensor-OS-001'
+                        'acquisitionSystem' => 'Sensor-OS'
                     ],
                 ],
                 'Secondaire' => [
                     [
-                        'name' => 'Réunion',
+                        'name' => 'Reunion',
                         'description' => 'Salle réunion 8 pers',
                         'captureTypes' => ['Temperature', 'Humidité', 'CO2', 'Bruit'],
                         'equipment' => ['Wifi', 'Ecrans', 'Chaises'],
-                        'acquisitionSystem' => 'Sensor-RE-001'
+                        'acquisitionSystem' => 'Sensor-RE'
                     ],
                     [
                         'name' => 'Kitchen',
                         'description' => 'Espace détente',
                         'captureTypes' => ['Temperature', 'Humidité'],
                         'equipment' => ['Machine à café', 'Fontaine à eau', 'Chaises'],
-                        'acquisitionSystem' => 'Sensor-KT-001'
+                        'acquisitionSystem' => 'Sensor-KT'
                     ],
                 ]
             ],
@@ -230,14 +277,14 @@ class AppFixtures extends Fixture
                         'description' => 'Espace développement',
                         'captureTypes' => ['Temperature', 'Humidité', 'CO2', 'Luminosité'],
                         'equipment' => ['Ordinateur', 'Wifi', 'Ecrans', 'Chaises'],
-                        'acquisitionSystem' => 'Sensor-TC-001'
+                        'acquisitionSystem' => 'Sensor-TC'
                     ],
                     [
-                        'name' => 'Labo R&D',
+                        'name' => 'Labo RD',
                         'description' => 'Laboratoire recherche',
                         'captureTypes' => ['Temperature', 'Humidité', 'CO2', 'Bruit'],
                         'equipment' => ['Ordinateur', 'Ecrans', 'Chaises'],
-                        'acquisitionSystem' => 'Sensor-LAB-001'
+                        'acquisitionSystem' => 'Sensor-LAB'
                     ],
                 ],
                 'Annexe' => [
@@ -246,7 +293,7 @@ class AppFixtures extends Fixture
                         'description' => 'Espace de production',
                         'captureTypes' => ['Temperature', 'Humidité', 'Bruit'],
                         'equipment' => ['Chaises'],
-                        'acquisitionSystem' => 'Sensor-AT-001'
+                        'acquisitionSystem' => 'Sensor-AT'
                     ],
                 ]
             ],
@@ -257,7 +304,34 @@ class AppFixtures extends Fixture
                         'description' => 'Espace travail collaboratif',
                         'captureTypes' => ['Temperature', 'Humidité', 'CO2', 'Luminosité', 'Bruit'],
                         'equipment' => ['Ordinateur', 'Wifi', 'Ecrans', 'Chaises'],
-                        'acquisitionSystem' => 'Sensor-ST-001'
+                        'acquisitionSystem' => 'Sensor-ST'
+                    ],
+                ]
+            ],
+            'EcoGreen' => [
+                'Siège' => [
+                    [
+                        'name' => 'Bureau Vert',
+                        'description' => 'Espace de travail ecologique',
+                        'captureTypes' => ['Temperature', 'Humidité', 'CO2', 'Luminosité'],
+                        'equipment' => ['Ordinateur', 'Wifi', 'Ecrans', 'Chaises'],
+                        'acquisitionSystem' => 'Sensor-EG1'
+                    ],
+                    [
+                        'name' => 'Salle Conf',
+                        'description' => 'Espace de reunion durable',
+                        'captureTypes' => ['Temperature', 'Humidité', 'CO2', 'Bruit'],
+                        'equipment' => ['Wifi', 'Ecrans', 'Chaises'],
+                        'acquisitionSystem' => 'Sensor-EG2'
+                    ],
+                ],
+                'Labo' => [
+                    [
+                        'name' => 'Labo Eco',
+                        'description' => 'Espace de R&D environnementale',
+                        'captureTypes' => ['Temperature', 'Humidité', 'CO2', 'Luminosité', 'Bruit'],
+                        'equipment' => ['Ordinateur', 'Ecrans', 'Chaises'],
+                        'acquisitionSystem' => 'Sensor-EG3'
                     ],
                 ]
             ]
@@ -269,7 +343,13 @@ class AppFixtures extends Fixture
         // Process rooms for all client accounts
         foreach ($roomsData as $company => $buildingsRooms) {
             foreach ($buildingsRooms as $buildingKey => $roomsData) {
-                $currentBuilding = $buildings[$company === 'Startup' ? 'Startup' : $company][$buildingKey];
+                $buildingMap = [
+                    'Neutria' => 'Neutria',
+                    'TechCorp' => 'TechCorp', 
+                    'Startup' => 'Startup',
+                    'EcoGreen' => 'EcoGreen'
+                ];
+                $currentBuilding = $buildings[$buildingMap[$company]][$buildingKey];
                 
                 foreach ($roomsData as $roomData) {
                     $room = new Room();

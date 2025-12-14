@@ -2,9 +2,10 @@
 
 namespace App\State\Provider;
 
+use ApiPlatform\Doctrine\Orm\State\CollectionProvider;
+use ApiPlatform\Doctrine\Orm\State\ItemProvider;
 use ApiPlatform\Metadata\Operation;
 use ApiPlatform\State\ProviderInterface;
-use App\Entity\Building;
 use App\Entity\User;
 use App\Repository\BuildingRepository;
 use App\Service\ClientAccountAccessService;
@@ -13,6 +14,8 @@ use Symfony\Bundle\SecurityBundle\Security;
 class BuildingProvider implements ProviderInterface
 {
     public function __construct(
+        private CollectionProvider $collectionProvider,
+        private ItemProvider $itemProvider,
         private BuildingRepository $buildingRepository,
         private Security $security,
         private ClientAccountAccessService $clientAccountAccessService
@@ -23,7 +26,7 @@ class BuildingProvider implements ProviderInterface
         $user = $this->security->getUser();
         
         if ($operation->getName() === 'get') {
-            $building = $this->buildingRepository->find($uriVariables['id']);
+            $building = $this->itemProvider->provide($operation, $uriVariables, $context);
             
             // Vérifier que l'utilisateur a accès à ce building
             if ($building && $user && $this->clientAccountAccessService->canAccessResource($building, $user)) {
@@ -35,19 +38,22 @@ class BuildingProvider implements ProviderInterface
 
         // Pour les collections, filtrer par compte client
         if ($user && $user instanceof User && method_exists($user, 'getClientAccount') && $user->getClientAccount()) {
-            // Si super admin, retourner tous les buildings
+            // Si super admin, utiliser le provider par défaut sans filtrage
             if (in_array('ROLE_SUPER_ADMIN', $user->getRoles())) {
-                return $this->buildingRepository->findAll();
+                return $this->collectionProvider->provide($operation, $uriVariables, $context);
             }
             
-            // Sinon, filtrer par client account
+            // Sinon, créer un query builder avec filtrage et laisser API Platform gérer la pagination
             $clientAccount = $user->getClientAccount();
-            return $this->buildingRepository->createQueryBuilder('b')
+            $qb = $this->buildingRepository->createQueryBuilder('b')
                 ->join('b.owner', 'u')
                 ->where('u.clientAccount = :clientAccount')
-                ->setParameter('clientAccount', $clientAccount)
-                ->getQuery()
-                ->getResult();
+                ->setParameter('clientAccount', $clientAccount);
+            
+            // Ajouter le query builder au contexte pour qu'API Platform l'utilise
+            $context['query_builder'] = $qb;
+            
+            return $this->collectionProvider->provide($operation, $uriVariables, $context);
         }
 
         return [];

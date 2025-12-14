@@ -2,16 +2,16 @@
 
 namespace App\State\Provider;
 
+use ApiPlatform\Doctrine\Orm\State\ItemProvider;
 use ApiPlatform\Metadata\Operation;
 use ApiPlatform\State\ProviderInterface;
-use App\Entity\ClientAccount;
-use App\Repository\ClientAccountRepository;
+use App\Entity\User;
 use Symfony\Bundle\SecurityBundle\Security;
 
 class ClientAccountProvider implements ProviderInterface
 {
     public function __construct(
-        private ClientAccountRepository $clientAccountRepository,
+        private ItemProvider $itemProvider,
         private Security $security
     ) {}
 
@@ -20,7 +20,7 @@ class ClientAccountProvider implements ProviderInterface
         $user = $this->security->getUser();
         
         if ($operation->getName() === 'get') {
-            $clientAccount = $this->clientAccountRepository->find($uriVariables['id']);
+            $clientAccount = $this->itemProvider->provide($operation, $uriVariables, $context);
             
             // Vérifier que l'utilisateur a accès à ce compte client
             if ($clientAccount && $user && $clientAccount->getUsers()->contains($user)) {
@@ -31,7 +31,7 @@ class ClientAccountProvider implements ProviderInterface
         }
 
         // Pour les collections, retourner le compte client de l'utilisateur
-        if ($user && method_exists($user, 'getClientAccount')) {
+        if ($user && $user instanceof User && method_exists($user, 'getClientAccount')) {
             $clientAccount = $user->getClientAccount();
             return $clientAccount ? [$clientAccount] : [];
         }

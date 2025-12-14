@@ -2,31 +2,39 @@
 
 namespace App\State\Provider;
 
+use ApiPlatform\Doctrine\Orm\State\CollectionProvider;
+use ApiPlatform\Doctrine\Orm\State\ItemProvider;
 use ApiPlatform\Metadata\CollectionOperationInterface;
 use ApiPlatform\Metadata\Operation;
 use ApiPlatform\State\ProviderInterface;
 use App\Dto\Mapper\EquipmentMapper;
-use App\Repository\EquipmentRepository;
 
 final class EquipmentProvider implements ProviderInterface
 {
     public function __construct(
-        private EquipmentRepository $repository,
+        private CollectionProvider $collectionProvider,
+        private ItemProvider $itemProvider,
         private EquipmentMapper $mapper,
     ) {}
 
     public function provide(Operation $operation, array $uriVariables = [], array $context = []): object|array|null
     {
         if ($operation instanceof CollectionOperationInterface) {
-            $equipment = $this->repository->findAll();
-            return array_map(
-                fn($item) => $this->mapper->mapEntityToOutputDto($item),
-                $equipment
-            );
+            $equipment = $this->collectionProvider->provide($operation, $uriVariables, $context);
+            
+            // Mapper les résultats en DTOs
+            if (is_array($equipment)) {
+                return array_map(
+                    fn($item) => $this->mapper->mapEntityToOutputDto($item),
+                    $equipment
+                );
+            }
+            
+            return $equipment;
         }
 
         // Get single
-        $equipment = $this->repository->find($uriVariables['id']);
+        $equipment = $this->itemProvider->provide($operation, $uriVariables, $context);
         return $equipment ? $this->mapper->mapEntityToOutputDto($equipment) : null;
     }
 }

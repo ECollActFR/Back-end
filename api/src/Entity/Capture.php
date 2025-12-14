@@ -16,9 +16,6 @@ use Symfony\Component\Serializer\Annotation\Groups;
 #[ORM\Entity(repositoryClass: CaptureRepository::class)]
 #[ApiResource(
     provider: CaptureProvider::class,
-    paginationClientEnabled: true,
-    paginationClientItemsPerPage: true,
-    paginationEnabled: true,
     normalizationContext: ['groups' => ['capture:read']],
     denormalizationContext: ['groups' => ['capture:write']],
     operations: [
