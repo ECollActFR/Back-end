@@ -32,6 +32,12 @@ use Symfony\Component\Serializer\Annotation\Groups;
             normalizationContext: ['groups' => ['room:last_captures']],
             security: "is_granted('view', object)"
         ),
+        new Get(
+            uriTemplate: '/rooms/{id}/captures/last7days',
+            provider: \App\State\Provider\CaptureLast7DaysProvider::class,
+            normalizationContext: ['groups' => ['capture:last7days']],
+            security: "is_granted('view', object)"
+        ),
         new Post(security: "is_granted('create', object)"),
         new Put(security: "is_granted('edit', object)"),
         new Patch(security: "is_granted('edit', object)"),

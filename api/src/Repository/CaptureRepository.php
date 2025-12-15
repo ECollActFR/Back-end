@@ -40,4 +40,23 @@ class CaptureRepository extends ServiceEntityRepository
 //            ->getOneOrNullResult()
 //        ;
 //    }
+
+    /**
+     * Récupère les captures des 7 derniers jours par type et salle
+     */
+    public function findLast7DaysByTypeAndRoom(int $typeId, int $roomId): array
+    {
+        $date7DaysAgo = new \DateTime('7 days ago');
+        
+        return $this->createQueryBuilder('c')
+            ->where('c.room = :room')
+            ->andWhere('c.type = :type')
+            ->andWhere('c.dateCaptured >= :dateStart')
+            ->setParameter('room', $roomId)
+            ->setParameter('type', $typeId)
+            ->setParameter('dateStart', $date7DaysAgo)
+            ->orderBy('c.dateCaptured', 'DESC')
+            ->getQuery()
+            ->getResult();
+    }
 }

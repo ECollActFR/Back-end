@@ -36,15 +36,15 @@ class CaptureType
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]
-    #[Groups(['captureType:read', 'capture:read', 'capture:room'])]
+    #[Groups(['captureType:read', 'capture:read', 'capture:room', 'capture:last7days'])]
     private ?int $id = null;
 
     #[ORM\Column(length: 50)]
-    #[Groups(['captureType:read', 'captureType:write', 'capture:read', 'capture:room'])]
+    #[Groups(['captureType:read', 'captureType:write', 'capture:read', 'capture:room', 'capture:last7days'])]
     private ?string $name = null;
 
     #[ORM\Column(length: 255)]
-    #[Groups(['captureType:read', 'captureType:write', 'capture:read', 'capture:room'])]
+    #[Groups(['captureType:read', 'captureType:write', 'capture:read', 'capture:room', 'capture:last7days'])]
     private ?string $description = null;
 
     #[ORM\Column]

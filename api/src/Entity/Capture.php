@@ -42,11 +42,11 @@ class Capture
     private ?int $id = null;
 
     #[ORM\Column(type: Types::DECIMAL, precision: 6, scale: 2)]
-    #[Groups(['capture:read', 'capture:write'])]
+    #[Groups(['capture:read', 'capture:write', 'capture:last7days'])]
     private ?string $value = null;
 
     #[ORM\Column(length: 255)]
-    #[Groups(['capture:read', 'capture:write'])]
+    #[Groups(['capture:read', 'capture:write', 'capture:last7days'])]
     private ?string $description = null;
 
     #[ORM\ManyToOne(inversedBy: 'captures')]
@@ -56,15 +56,15 @@ class Capture
 
     #[ORM\ManyToOne]
     #[ORM\JoinColumn(nullable: false)]
-    #[Groups(['capture:read', 'capture:write'])]
+    #[Groups(['capture:read', 'capture:write', 'capture:last7days'])]
     private ?CaptureType $type = null;
 
     #[ORM\Column]
-    #[Groups(['capture:read'])]
+    #[Groups(['capture:read', 'capture:last7days'])]
     private ?\DateTime $createdAt = null;
 
     #[ORM\Column]
-    #[Groups(['capture:read', 'capture:room', 'capture:write'])]
+    #[Groups(['capture:read', 'capture:room', 'capture:write', 'capture:last7days'])]
     private ?\DateTime $dateCaptured = null;
 
     public function __construct()
