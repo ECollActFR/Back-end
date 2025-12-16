@@ -10,5 +10,6 @@ readonly class EquipmentOutputDto
         public ?int $capacity,
         public string $createdAt,
         public array $roomIds = [],
+        public ?int $clientAccountId = null,
     ) {}
 }

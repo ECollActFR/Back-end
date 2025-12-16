@@ -6,6 +6,9 @@ use App\Entity\User;
 use App\Entity\Building;
 use App\Entity\Room;
 use App\Entity\ClientAccount;
+use App\Entity\AcquisitionSystem;
+use App\Entity\Capture;
+use App\Entity\Equipment;
 
 class ClientAccountAccessService
 {
@@ -55,6 +58,18 @@ class ClientAccountAccessService
             return $resource->getId() === $userClientAccountId;
         }
 
+        if ($resource instanceof AcquisitionSystem) {
+            return $this->canAccessAcquisitionSystem($resource, $userClientAccountId);
+        }
+
+        if ($resource instanceof Capture) {
+            return $this->canAccessCapture($resource, $userClientAccountId);
+        }
+
+        if ($resource instanceof Equipment) {
+            return $this->canAccessEquipment($resource, $userClientAccountId);
+        }
+
         return false;
     }
 
@@ -92,6 +107,47 @@ class ClientAccountAccessService
         }
 
         return $this->canAccessBuilding($building, $userClientAccountId);
+    }
+
+    /**
+     * Vérifie si un utilisateur peut accéder à un système d'acquisition
+     */
+    private function canAccessAcquisitionSystem(AcquisitionSystem $acquisitionSystem, int $userClientAccountId): bool
+    {
+        $room = $acquisitionSystem->getRoom();
+        if (!$room) {
+            return false;
+        }
+
+        return $this->canAccessRoom($room, $userClientAccountId);
+    }
+
+    /**
+     * Vérifie si un utilisateur peut accéder à une capture
+     */
+    private function canAccessCapture(Capture $capture, int $userClientAccountId): bool
+    {
+        $room = $capture->getRoom();
+        if (!$room) {
+            return false;
+        }
+
+        return $this->canAccessRoom($room, $userClientAccountId);
+    }
+
+    /**
+     * Vérifie si un utilisateur peut accéder à un équipement
+     */
+    private function canAccessEquipment(Equipment $equipment, int $userClientAccountId): bool
+    {
+        // Vérifier si l'équipement est dans au moins une salle accessible
+        foreach ($equipment->getRooms() as $room) {
+            if ($this->canAccessRoom($room, $userClientAccountId)) {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     /**

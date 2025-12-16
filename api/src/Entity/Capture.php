@@ -8,6 +8,7 @@ use ApiPlatform\Metadata\Post;
 use ApiPlatform\Metadata\GetCollection;
 use App\Repository\CaptureRepository;
 use App\State\Provider\CaptureProvider;
+use App\State\Processor\CaptureProcessor;
 use Carbon\Carbon;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
@@ -16,6 +17,7 @@ use Symfony\Component\Serializer\Annotation\Groups;
 #[ORM\Entity(repositoryClass: CaptureRepository::class)]
 #[ApiResource(
     provider: CaptureProvider::class,
+    processor: CaptureProcessor::class,
     normalizationContext: ['groups' => ['capture:read']],
     denormalizationContext: ['groups' => ['capture:write']],
     operations: [
@@ -145,6 +147,18 @@ class Capture
     public function setDateCaptured(\DateTime $dateCaptured): static
     {
         $this->dateCaptured = $dateCaptured;
+
+        return $this;
+    }
+
+    public function getCaptureType(): ?CaptureType
+    {
+        return $this->type;
+    }
+
+    public function setCaptureType(?CaptureType $type): static
+    {
+        $this->type = $type;
 
         return $this;
     }

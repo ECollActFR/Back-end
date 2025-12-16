@@ -4,9 +4,14 @@ namespace App\Security\Voter;
 
 use App\Entity\Capture;
 use App\Entity\User;
+use App\Service\ClientAccountAccessService;
 
 class CaptureVoter extends AbstractResourceVoter
 {
+    public function __construct(
+        private ClientAccountAccessService $clientAccountAccessService
+    ) {}
+
     protected function getResourceClass(): string
     {
         return Capture::class;
@@ -14,20 +19,17 @@ class CaptureVoter extends AbstractResourceVoter
 
     protected function canView(mixed $subject, User $user): bool
     {
-        $room = $subject->getRoom();
-        return $room && $room->getBuilding()->getOwner() === $user;
+        return $this->clientAccountAccessService->canAccessResource($subject, $user);
     }
 
     protected function canEdit(mixed $subject, User $user): bool
     {
-        $room = $subject->getRoom();
-        return $room && $room->getBuilding()->getOwner() === $user;
+        return $this->clientAccountAccessService->canAccessResource($subject, $user);
     }
 
     protected function canDelete(mixed $subject, User $user): bool
     {
-        $room = $subject->getRoom();
-        return $room && $room->getBuilding()->getOwner() === $user;
+        return $this->clientAccountAccessService->canAccessResource($subject, $user);
     }
 
     protected function canCreate(mixed $subject, User $user): bool

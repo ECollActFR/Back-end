@@ -12,6 +12,9 @@ use ApiPlatform\Metadata\Put;
 use App\Repository\RoomRepository;
 use App\State\Provider\RoomProvider;
 use App\State\Provider\RoomWithLastCapturesProvider;
+use App\State\Processor\RoomProcessor;
+use App\Dto\Input\RoomInputDto;
+use App\Dto\Output\RoomOutputDto;
 use Carbon\Carbon;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
@@ -20,22 +23,21 @@ use Symfony\Component\Serializer\Annotation\Groups;
 
 #[ORM\Entity(repositoryClass: RoomRepository::class)]
 #[ApiResource(
+    input: RoomInputDto::class,
+    output: RoomOutputDto::class,
     provider: RoomProvider::class,
-    normalizationContext: ['groups' => ['room:read', 'capture:room']],
-    denormalizationContext: ['groups' => ['room:write']],
+    processor: RoomProcessor::class,
     operations: [
         new GetCollection(security: "is_granted('ROLE_USER')"),
         new Get(security: "is_granted('view', object)"),
         new Get(
             uriTemplate: '/rooms/{id}/lastCaptures',
             provider: RoomWithLastCapturesProvider::class,
-            normalizationContext: ['groups' => ['room:last_captures']],
             security: "is_granted('view', object)"
         ),
         new Get(
             uriTemplate: '/rooms/{id}/captures/last7days',
             provider: \App\State\Provider\CaptureLast7DaysProvider::class,
-            normalizationContext: ['groups' => ['capture:last7days']],
             security: "is_granted('view', object)"
         ),
         new Post(security: "is_granted('create', object)"),
@@ -53,17 +55,16 @@ class Room
     private ?int $id = null;
 
     #[ORM\Column(length: 15)]
-    #[Groups(['capture:room', 'room:read', 'room:write'])]
     private ?string $name = null;
 
     #[ORM\Column(length: 255, nullable: true)]
-    #[Groups(['capture:room', 'room:read', 'room:write'])]
     private ?string $description = null;
 
     /**
      * @var Collection<int, Capture>
      */
     #[ORM\OneToMany(targetEntity: Capture::class, mappedBy: 'room', cascade: ['remove'])]
+    #[Groups(['capture:room'])] // Gardé pour les providers spécialisés
     private Collection $captures;
 
     /**
@@ -71,31 +72,29 @@ class Room
      */
     #[ORM\ManyToMany(targetEntity: CaptureType::class)]
     #[ORM\JoinTable(name: 'room_capture_type')]
-    #[Groups(['capture:room', 'room:read'])]
     private Collection $captureTypes;
 
     #[ORM\Column]
-    #[Groups(['capture:room', 'room:read'])]
     private ?\DateTime $createdAt = null;
 
     /**
      * @var Collection<int, AcquisitionSystem>
      */
     #[ORM\OneToMany(targetEntity: AcquisitionSystem::class, mappedBy: 'room', cascade: ['persist', 'remove'])]
-    #[Groups(['capture:room', 'room:read'])]
+    #[Groups(['capture:room'])] // Gardé pour les providers spécialisés
     private Collection $acquisitionSystems;
 
     /**
      * @var Collection<int, Equipment>
      */
     #[ORM\ManyToMany(targetEntity: Equipment::class, inversedBy: 'rooms')]
-    #[Groups(['capture:room', 'room:read'])]
     private Collection $equipment;
 
     #[ORM\ManyToOne(inversedBy: 'rooms')]
     #[ORM\JoinColumn(nullable: false)]
-    #[Groups(['room:read', 'room:write'])]
     private ?Building $building = null;
+
+
 
     public function __construct()
     {
@@ -259,4 +258,6 @@ class Room
 
         return $this;
     }
+
+
 }

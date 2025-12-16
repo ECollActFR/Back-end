@@ -86,11 +86,14 @@ class ClientAccount
     #[ORM\OneToMany(targetEntity: User::class, mappedBy: 'clientAccount', orphanRemoval: true)]
     private Collection $users;
 
+
+
     public function __construct(?string $companyName = null)
     {
         $this->companyName = $companyName;
         $this->createdAt = Carbon::now();
         $this->users = new ArrayCollection();
+
         $this->isActive = true;
     }
 
@@ -253,4 +256,6 @@ class ClientAccount
 
         return $this;
     }
+
+
 }

@@ -10,13 +10,19 @@ use ApiPlatform\Metadata\Patch;
 use ApiPlatform\Metadata\Post;
 use App\Repository\BuildingRepository;
 use App\State\Provider\BuildingProvider;
+use App\State\Processor\BuildingProcessor;
+use App\Dto\Input\BuildingInputDto;
+use App\Dto\Output\BuildingOutputDto;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
 
 #[ORM\Entity(repositoryClass: BuildingRepository::class)]
 #[ApiResource(
+    input: BuildingInputDto::class,
+    output: BuildingOutputDto::class,
     provider: BuildingProvider::class,
+    processor: BuildingProcessor::class,
     operations: [
         new Get(security: "is_granted('view', object)"),
         new GetCollection(security: "is_granted('ROLE_USER')"),

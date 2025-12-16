@@ -9,6 +9,7 @@ use ApiPlatform\Metadata\Patch;
 use ApiPlatform\Metadata\Post;
 use App\Repository\AcquisitionSystemRepository;
 use App\State\Provider\AcquisitionSystemProvider;
+use App\State\Processor\AcquisitionSystemProcessor;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
@@ -19,6 +20,7 @@ use Symfony\Component\Validator\Constraints as Assert;
 #[ORM\Entity(repositoryClass: AcquisitionSystemRepository::class)]
 #[ApiResource(
     provider: AcquisitionSystemProvider::class,
+    processor: AcquisitionSystemProcessor::class,
     normalizationContext: ['groups' => ['acquisitionSystem:read']],
     denormalizationContext: ['groups' => ['acquisitionSystem:write']],
     operations: [

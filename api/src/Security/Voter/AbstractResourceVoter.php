@@ -33,8 +33,8 @@ abstract class AbstractResourceVoter extends Voter
             return false;
         }
 
-        // Admin bypass
-        if (in_array('ROLE_ADMIN', $user->getRoles())) {
+        // Super Admin bypass
+        if (in_array('ROLE_SUPER_ADMIN', $user->getRoles())) {
             return true;
         }
 
