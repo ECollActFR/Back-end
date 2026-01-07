@@ -8,8 +8,24 @@ framework:
     #esi: true
     #fragments: true
 
+    # Mailer configuration with Brevo
+    mailer:
+        dsn: '%env(MAILER_DSN)%'
+
+    # Messenger configuration
+    messenger:
+        transports:
+            async: 'doctrine://default'
+            sync: 'sync://'
+
+        routing:
+            App\Message\SendEmailMessage: async
+
 when@test:
     framework:
         test: true
         session:
             storage_factory_id: session.storage.factory.mock_file
+        messenger:
+            transports:
+                async: 'in-memory://'

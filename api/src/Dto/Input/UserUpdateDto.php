@@ -23,9 +23,8 @@ readonly class UserUpdateDto
         #[Assert\Length(max: 16)]
         public ?string $phone = null,
 
-        #[Assert\Url(message: "L'URL de la photo de profil n'est pas valide")]
         #[Assert\Length(max: 255)]
-        public ?string $profilePictureUrl = null,
+        public ?string $profilePicture = null,
 
         public ?array $roles = null,
     ) {}

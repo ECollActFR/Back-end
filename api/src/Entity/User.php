@@ -1,13 +1,6 @@
 <?php
 
 namespace App\Entity;
-use App\Entity\ClientAccount;
-use App\Dto\Input\UserInputDto;
-use App\Dto\Input\UserUpdateDto;
-use App\Dto\Output\UserOutputDto;
-use App\Dto\Output\TokenValidationOutputDto;
-use App\State\Processor\UserProcessor;
-use App\State\Provider\UserProvider;
 
 use ApiPlatform\Metadata\ApiResource;
 use ApiPlatform\Metadata\Delete;
@@ -15,6 +8,13 @@ use ApiPlatform\Metadata\Get;
 use ApiPlatform\Metadata\GetCollection;
 use ApiPlatform\Metadata\Patch;
 use ApiPlatform\Metadata\Post;
+use App\Entity\ClientAccount;
+use App\Dto\Input\UserInputDto;
+use App\Dto\Input\UserUpdateDto;
+use App\Dto\Output\UserOutputDto;
+use App\Dto\Output\TokenValidationOutputDto;
+use App\State\Processor\UserProcessor;
+use App\State\Provider\UserProvider;
 use App\Controller\UsersController;
 use App\Repository\UserRepository;
 use Carbon\Carbon;
@@ -41,6 +41,7 @@ use Symfony\Component\Serializer\Annotation\Groups;
             security: "is_granted('edit', object)"
         ),
         new Post(),
+        
         new Delete(security: "is_granted('delete', object)"),
 
         // Opération custom: desactivate
@@ -103,7 +104,7 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
 
     #[ORM\Column(length: 255, nullable: true)]
     #[Groups(['user:read', 'user:write'])]
-    private ?string $profilePictureUrl = null;
+    private ?string $profilePicture = null;
 
     #[ORM\Column(length: 16, nullable: true)]
     #[Groups(['user:read', 'user:write'])]
@@ -273,14 +274,14 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
         return $this;
     }
 
-    public function getProfilePictureUrl(): ?string
+    public function getProfilePicture(): ?string
     {
-        return $this->profilePictureUrl;
+        return $this->profilePicture;
     }
 
-    public function setProfilePictureUrl(?string $profilePictureUrl): static
+    public function setProfilePicture(?string $profilePicture): static
     {
-        $this->profilePictureUrl = $profilePictureUrl;
+        $this->profilePicture = $profilePicture;
 
         return $this;
     }

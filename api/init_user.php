@@ -128,13 +128,6 @@ try {
 
     echo "✓ Connexion établie\n\n";
 
-    // Suppression de l'utilisateur existant
-    echo "Suppression de l'utilisateur existant (si présent)...\n";
-    $stmt = $pdo->prepare("DELETE FROM `user` WHERE email = :email");
-    $stmt->execute(['email' => $email]);
-    $deletedRows = $stmt->rowCount();
-    echo "  → $deletedRows ligne(s) supprimée(s)\n\n";
-
     // Insertion du nouvel utilisateur
     echo "Insertion du nouvel utilisateur...\n";
     $stmt = $pdo->prepare("

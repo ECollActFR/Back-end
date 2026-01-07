@@ -10,6 +10,8 @@ use App\Dto\Input\UserUpdateDto;
 use App\Dto\Mapper\UserMapper;
 use App\Entity\User;
 use App\Entity\ClientAccount;
+use App\Service\PasswordGeneratorService;
+use App\Service\EmailService;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Response;
@@ -23,12 +25,14 @@ final class UserProcessor implements ProcessorInterface
         private UserMapper $mapper,
         private UserPasswordHasherInterface $passwordHasher,
         private TokenStorageInterface $tokenStorage,
+        private PasswordGeneratorService $passwordGenerator,
+        private EmailService $emailService,
     ) {}
 
     public function process(mixed $data, Operation $operation, array $uriVariables = [], array $context = []): mixed
     {
         // Gestion de l'opération /users/{id}/desactivate
-        if ($operation->getUriTemplate() === '/users/{id}/desactivate') {
+        if ($operation instanceof Delete && str_ends_with($context['uri'] ?? '', '/desactivate')) {
             return $this->handleDesactivate($uriVariables['id']);
         }
 
@@ -46,9 +50,12 @@ final class UserProcessor implements ProcessorInterface
             if ($data instanceof UserInputDto) {
                 $this->mapper->mapInputDtoToEntity($data, $user);
                 
-                // Hacher le mot de passe
-                $hashedPassword = $this->passwordHasher->hashPassword($user, $data->password);
-                $user->setPassword($hashedPassword);
+                // Générer et hasher le mot de passe automatiquement
+                $passwordData = $this->passwordGenerator->generateAndHashPassword($this->passwordHasher, $user);
+                $user->setPassword($passwordData['hashed']);
+                
+                // Envoyer l'email de bienvenue avec les identifiants
+                $this->emailService->sendWelcomeEmail($user, $passwordData['plain']);
                 
                 // Associer au compte client si spécifié
                 if ($data->clientAccountId) {

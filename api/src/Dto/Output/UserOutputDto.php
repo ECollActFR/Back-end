@@ -11,7 +11,7 @@ readonly class UserOutputDto
         public string $firstname,
         public string $lastname,
         public ?string $phone,
-        public ?string $profilePictureUrl,
+        public ?string $profilePicture,
         public bool $isActive,
         public bool $emailVerified,
         public string $createdAt,

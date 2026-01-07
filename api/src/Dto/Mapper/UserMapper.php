@@ -7,16 +7,23 @@ use App\Dto\Input\UserUpdateDto;
 use App\Dto\Output\UserOutputDto;
 use App\Entity\User;
 
+
+
 class UserMapper
 {
+
+
     public function mapInputDtoToEntity(UserInputDto $dto, User $user): User
     {
         $user->setEmail($dto->email);
-        // Le mot de passe sera haché dans le Processor
         $user->setFirstname($dto->firstname);
         $user->setLastname($dto->lastname);
         $user->setPhone($dto->phone);
-        $user->setProfilePictureUrl($dto->profilePictureUrl);
+        
+        // Gérer la photo de profil (chaîne de caractères représentant le chemin)
+        if ($dto->profilePicture) {
+            $user->setProfilePicture($dto->profilePicture);
+        }
         
         if (!empty($dto->roles)) {
             $user->setRoles($dto->roles);
@@ -31,8 +38,6 @@ class UserMapper
             $user->setEmail($dto->email);
         }
         
-        // Le mot de passe sera haché dans le Processor si fourni
-        
         if ($dto->firstname !== null) {
             $user->setFirstname($dto->firstname);
         }
@@ -45,8 +50,9 @@ class UserMapper
             $user->setPhone($dto->phone);
         }
         
-        if ($dto->profilePictureUrl !== null) {
-            $user->setProfilePictureUrl($dto->profilePictureUrl);
+        // Gérer la photo de profil (chaîne de caractères représentant le chemin)
+        if ($dto->profilePicture) {
+            $user->setProfilePicture($dto->profilePicture);
         }
         
         if ($dto->roles !== null) {
@@ -85,7 +91,7 @@ class UserMapper
             firstname: $user->getFirstname(),
             lastname: $user->getLastname(),
             phone: $user->getPhone(),
-            profilePictureUrl: $user->getProfilePictureUrl(),
+            profilePicture: $user->getProfilePicture(),
             isActive: $user->isActive(),
             emailVerified: $user->isEmailVerified(),
             createdAt: $user->getCreatedAt()?->format('c'),
